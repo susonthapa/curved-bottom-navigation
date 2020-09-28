@@ -6,15 +6,6 @@
     android:layout_height="match_parent"
     android:paddingTop="?attr/actionBarSize">
 
-    <np.com.susanthapa.curvedbottomnavigation.BottomNavLayout
-        android:id="@+id/nav_view"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bottom_nav_layout_height"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
 
     <fragment
         android:id="@+id/nav_host_fragment"
@@ -27,5 +18,15 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation" />
+
+    <np.com.susanthapa.curvedbottomnavigation.BottomNavLayout
+        android:id="@+id/nav_view"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/bottom_nav_layout_height"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

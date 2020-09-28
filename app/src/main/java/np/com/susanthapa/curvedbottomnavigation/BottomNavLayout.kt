@@ -23,6 +23,15 @@ class BottomNavLayout @JvmOverloads constructor(
         get() = binding.curvedBottomNav
 
     init {
+        bottomNavigation.menuClickListener = {offset, width, index ->
+            val left = offset + (width - binding.curvedFab.width) / 2
+            val newLayoutParams = (binding.curvedFab.layoutParams as LayoutParams).apply {
+                marginStart = left
+            }
+            binding.curvedFab.layoutParams = newLayoutParams
+            binding.curvedFab.setImageResource(bottomNavigation.getMenuItems()[index])
+
+        }
     }
 
 }
