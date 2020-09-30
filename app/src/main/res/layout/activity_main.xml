@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation" />
 
-    <np.com.susanthapa.curvedbottomnavigation.BottomNavLayout
+    <np.com.susanthapa.curvedbottomnavigation.CurvedBottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="0dp"
         android:layout_height="@dimen/bottom_nav_layout_height"

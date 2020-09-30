@@ -30,7 +30,6 @@ class BottomNavLayout @JvmOverloads constructor(
             }
             binding.curvedFab.layoutParams = newLayoutParams
             binding.curvedFab.setImageResource(bottomNavigation.getMenuItems()[index])
-
         }
     }
 
