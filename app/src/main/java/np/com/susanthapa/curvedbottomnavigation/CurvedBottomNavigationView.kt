@@ -9,7 +9,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -31,8 +31,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val TAG = "CurvedBottomNavigation"
     private val PROPERTY_OFFSET = "OFFSET"
     private val PROPERTY_CENTERY = "CENTER_Y"
-    private val PROPERTY_FADE_IN = "FADE_IN"
-    private val PROPERTY_FADE_OUT = "FADE_OUT"
 
     // first bezier curve
     private val firstCurveStart = PointF()
@@ -52,26 +50,34 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         color = Color.WHITE
     }
 
+    // icon colors
+    private val unSelectedIconTint = ContextCompat.getColor(context, R.color.color_BDBDBD)
+    private val activeIconTint = ContextCompat.getColor(context, R.color.color_000000)
+    private val activeColorFilter = PorterDuffColorFilter(activeIconTint, PorterDuff.Mode.SRC_IN)
+
     private lateinit var menuItems: Array<Int>
     private lateinit var menuImageViews: Array<ImageView>
+    private lateinit var menuImageAnimations: Array<Boolean>
     private lateinit var menuIcons: Array<Bitmap>
     private var menuWidth: Int = 0
     private var offsetX: Int = 0
     private var selectedItem: Int = -1
     private var prevSelectedItem: Int = -1
     private val indicatorSize = resources.getDimensionPixelSize(R.dimen.fab_size)
-    private var centerY = indicatorSize / 2f
     private val bottomNavOffsetY =
         resources.getDimensionPixelSize(R.dimen.bottom_nav_layout_height) - resources.getDimensionPixelSize(
             R.dimen.bottom_nav_height
         )
 
+    private val fabMargin = resources.getDimensionPixelSize(R.dimen.bottom_nav_fab_margin)
     private val FAB_RADIUS = resources.getDimension(R.dimen.fab_size) / 2
     private val TOP_CONTROL_X = FAB_RADIUS + FAB_RADIUS / 2
     private val TOP_CONTROL_Y = bottomNavOffsetY + FAB_RADIUS / 6
     private val BOTTOM_CONTROL_X = FAB_RADIUS + (FAB_RADIUS / 2)
     private val BOTTOM_CONTROL_Y = FAB_RADIUS / 4
-    private val CURVE_OFFSET = FAB_RADIUS * 2 + (FAB_RADIUS / 6)
+    private val CURVE_WIDTH = FAB_RADIUS * 2 + fabMargin
+    private val curveBottomOffset = resources.getDimensionPixelSize(R.dimen.bottom_nav_bottom_curve_offset)
+    private var centerY = indicatorSize / 2f + fabMargin
     private val fabColor: Int
 
     // listener for the menuItemClick
@@ -81,7 +87,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         setBackgroundColor(Color.TRANSPARENT)
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorAccent, typedValue, true)
-        fabColor = ContextCompat.getColor(context, typedValue.resourceId)
+        fabColor = Color.WHITE
     }
 
     fun setMenuItems(menuItems: Array<Int>) {
@@ -90,7 +96,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             ImageView(context)
         }
         menuIcons = Array(menuItems.size) {
-            ResourcesCompat.getDrawable(resources, menuItems[it], context.theme)!!.toBitmap()
+            val drawable = ResourcesCompat.getDrawable(resources, menuItems[it], context.theme)!!
+            drawable.setTint(unSelectedIconTint)
+            drawable.toBitmap()
+        }
+        menuImageAnimations = Array(menuItems.size) {
+            // initialize all animations to false
+            false
         }
         initializeBottomItems(menuItems)
     }
@@ -133,6 +145,83 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         addView(bottomNavLayout, bottomNavLayoutParams)
     }
 
+    private fun animateIntermediateIcon(index: Int, time: Long, offset: Long) {
+        // check for already running animations for the icon
+        if (menuImageAnimations[index]) {
+            return
+        }
+        Log.d(TAG, "animating intermediate icon")
+        // hide the icon within the time the curve reaches the start of this icon slot
+        val hideAnimation = getIconHideAnimation(index, offset)
+        // animate only when the curve reaches the end of this icon slot
+        val showDuration = time - 2 * offset
+        if (showDuration < 0) {
+            Log.w(TAG, "show animation duration < 0, try increasing iconSlotAnimation")
+            return
+        }
+        val showAnimation = getIconShowAnimation(index, (time - 2 * offset))
+        showAnimation.startDelay = offset
+        val set = AnimatorSet()
+        set.playSequentially(hideAnimation, showAnimation)
+        set.interpolator = DecelerateInterpolator()
+        set.start()
+    }
+
+    private fun animateSourceIcon(index: Int, time: Long) {
+        // check for already running animations for the icon
+        if (menuImageAnimations[index]) {
+            return
+        }
+        Log.d(TAG, "animating source icon")
+        // show the icon
+        val showAnimation = getIconShowAnimation(index, time)
+        showAnimation.interpolator = DecelerateInterpolator()
+        showAnimation.start()
+    }
+
+    private fun animateDestinationIcon(index: Int, time: Long) {
+        // check for already running animations for the icon
+        if (menuImageAnimations[index]) {
+            return
+        }
+        Log.d(TAG, "animating destination icon")
+        // hide the icon
+        val hideAnimation = getIconHideAnimation(index, time)
+        hideAnimation.interpolator = DecelerateInterpolator()
+        hideAnimation.start()
+    }
+
+    private fun getIconHideAnimation(index: Int, time: Long): ValueAnimator {
+        return ObjectAnimator.ofFloat(menuImageViews[index], "alpha", 1f, 0f)
+            .apply {
+                duration = time
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        menuImageAnimations[index] = true
+                    }
+                })
+            }
+    }
+
+    private fun getIconShowAnimation(index: Int, time: Long): ValueAnimator {
+        val translateYProperty =
+            PropertyValuesHolder.ofFloat("translationY", menuImageViews[index].height * 0.1f, 0f)
+        val alphaProperty = PropertyValuesHolder.ofFloat("alpha", 0f, 1f)
+        return ObjectAnimator.ofPropertyValuesHolder(
+            menuImageViews[index],
+            alphaProperty,
+            translateYProperty
+        )
+            .apply {
+                duration = time
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        menuImageAnimations[index] = true
+                    }
+                })
+            }
+    }
+
     private fun onMenuItemClick(index: Int) {
         // make all item except current item invisible
         menuImageViews.forEachIndexed { i, imageView ->
@@ -148,41 +237,57 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {
         val propertyOffset = PropertyValuesHolder.ofInt(PROPERTY_OFFSET, offsetX, offset)
-        val propertyFadeIn = PropertyValuesHolder.ofFloat(PROPERTY_FADE_IN, 0f, 1f)
-        val propertyFadeOut = PropertyValuesHolder.ofFloat(PROPERTY_FADE_OUT, 1f, 0f)
         // watch the direction and compute the diff
         val isLTR = (selectedItem - index) < 0
         val diff = abs(selectedItem - index)
+        if (diff == 0) {
+            Log.w(TAG, "same icon multiple clicked, skipping animation!")
+            return
+        }
         // compute the animation time dynamically based on the distance between clicks
-//        val animDuration = intermediateCount * 100L
-        val slideAnimDuration = 350L
+        val slideAnimDuration = 300L
         val iconAnimSlot = slideAnimDuration / diff
+        val iconSlotAnimation = slideAnimDuration
         val fabAnimDuration = 75L
         // compute the time it will take to move from start to bottom of the curve
-        val curveBottomOffset = ((firstCurveEnd.x - firstCurveStart.x) * slideAnimDuration) / width - iconAnimSlot
-        Log.d(TAG, "diff: $diff, animDuration: $slideAnimDuration, ,slot: $iconAnimSlot, curveBottomOffset: $curveBottomOffset")
+        val curveBottomOffset = (((CURVE_WIDTH / 2) * slideAnimDuration) / this.width).toLong()
+        Log.d(TAG, "CURVE_OFFSET: $CURVE_WIDTH, width: ${this.width}")
+        Log.d(
+            TAG,
+            "diff: $diff, animDuration: $slideAnimDuration, ,slot: $iconAnimSlot, curveBottomOffset: $curveBottomOffset"
+        )
         val offsetAnimator = ValueAnimator().apply {
-            setValues(propertyOffset, propertyFadeIn, propertyFadeOut)
+            setValues(propertyOffset)
             startDelay = fabAnimDuration
             duration = slideAnimDuration
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    // reset all the status of icon animations
+                    menuImageAnimations.forEachIndexed { index, _ ->
+                        menuImageAnimations[index] = false
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+                    // reset all the status of icon animations
+                    menuImageAnimations.forEachIndexed { index, _ ->
+                        menuImageAnimations[index] = false
+                    }
+                }
+            })
             addUpdateListener { animator ->
-                val newOffset = animator.getAnimatedValue(PROPERTY_OFFSET) as Int
-                val fadeIn = animator.getAnimatedValue(PROPERTY_FADE_IN) as Float
-                val fadeOut = animator.getAnimatedValue(PROPERTY_FADE_OUT) as Float
+                val newOffset = getAnimatedValue(PROPERTY_OFFSET) as Int
                 // the curve will animate no matter what
                 computeCurve(newOffset, width)
                 invalidate()
                 // delay the animation by taking the bottom of the curve as reference
                 val currentTime = animator.animatedFraction * slideAnimDuration
-                Log.d(TAG, "fraction: $animatedFraction, computedValue: ${(animator.animatedFraction) * slideAnimDuration + (iconAnimSlot)}")
+                Log.d(
+                    TAG,
+                    "fraction: $animatedFraction, computedValue: ${(animator.animatedFraction) * slideAnimDuration + (iconAnimSlot)}"
+                )
                 // compute the index above which this curve is moving
                 var overIconIndex = ((currentTime + (iconAnimSlot)) / iconAnimSlot).toInt()
-                val overIconAlpha = if (overIconIndex < 2) {
-                    currentTime / (iconAnimSlot * overIconIndex)
-                } else {
-                    // clamp the values between 0 and 1
-                    (currentTime - (iconAnimSlot * (overIconIndex - 1))) / iconAnimSlot
-                }
                 if (isLTR) {
                     overIconIndex += prevSelectedItem
                     // prevent animatedFraction to be 0
@@ -199,22 +304,34 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                         return@addUpdateListener
                     }
                 }
-                // animate the leaving view when the curve moves over the half of the adjacent view
-                if (abs((overIconIndex - prevSelectedItem)) == 1) {
-                    // divide the animate time in half
-                    menuImageViews[prevSelectedItem].alpha = overIconAlpha * 2
+                when {
+                    overIconIndex == index -> {
+                        // animate the destination icon within the time the curve reaches it's boundary
+                        animateDestinationIcon(overIconIndex, curveBottomOffset)
+                        if (diff == 1) {
+                            // also animate the source icon as this is the adjacent click event
+                            animateSourceIcon(prevSelectedItem, iconSlotAnimation)
+                        }
+                    }
+                    abs(overIconIndex - prevSelectedItem) == 1 -> {
+                        // we currently in the adjacent icon of the current source icon, show source animations
+                        animateSourceIcon(prevSelectedItem, iconSlotAnimation)
+                        // also initialize the intermediate animations
+                        animateIntermediateIcon(overIconIndex, iconSlotAnimation, curveBottomOffset)
+                    }
+                    else -> {
+                        // we over intermediate icons, show the intermediate icons
+                        animateIntermediateIcon(overIconIndex, iconSlotAnimation, curveBottomOffset)
+                    }
                 }
-                Log.d(TAG, "isLTR: $isLTR, currentTime: $currentTime, iconOverIndex: $overIconIndex, iconOverAlpha: $overIconAlpha")
-                // animate the alpha of the current item below the curve in it's range
-                if (overIconIndex == index) {
-                    // animate the target view alpha from 1 to 0
-                    menuImageViews[overIconIndex].alpha = 1 - overIconAlpha
-                } else {
-                    menuImageViews[overIconIndex].alpha = overIconAlpha
-                }
+                Log.d(
+                    TAG,
+                    "isLTR: $isLTR, currentTime: $currentTime, iconOverIndex: $overIconIndex"
+                )
             }
         }
-        val propertyCenterY = PropertyValuesHolder.ofFloat(PROPERTY_CENTERY, centerY, centerY * 2.5f)
+        val propertyCenterY =
+            PropertyValuesHolder.ofFloat(PROPERTY_CENTERY, centerY, centerY * 2.5f)
         val centerYAnimatorHide = ValueAnimator().apply {
             setValues(propertyCenterY)
             duration = fabAnimDuration
@@ -223,7 +340,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 centerY = newCenterY
                 invalidate()
             }
-            addListener(object: AnimatorListenerAdapter() {
+            addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
                     // only update the index after this hidden animation is complete
                     selectedItem = index
@@ -231,12 +348,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             })
         }
 
-        val propertyCenterYReverse = PropertyValuesHolder.ofFloat(PROPERTY_CENTERY, centerY * 2.5f, centerY)
+        val propertyCenterYReverse =
+            PropertyValuesHolder.ofFloat(PROPERTY_CENTERY, centerY * 2.5f, centerY)
         val centerYAnimatorShow = ValueAnimator().apply {
             setValues(propertyCenterYReverse)
             startDelay = (slideAnimDuration)
             duration = fabAnimDuration
-            addListener(object: AnimatorListenerAdapter() {
+            addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
                     // disable the clicks in the target view
                     menuImageViews[index].visibility = INVISIBLE
@@ -251,7 +369,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
         val set = AnimatorSet()
         set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
-        set.interpolator = AccelerateDecelerateInterpolator()
+        set.interpolator = DecelerateInterpolator()
         set.start()
     }
 
@@ -261,12 +379,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // first curve
         firstCurveStart.apply {
             // you can change the 3rd param to control the spacing between curve start and FAB start
-            x = offsetX + (w / 2) - CURVE_OFFSET
+            x = offsetX + (w / 2) - CURVE_WIDTH
             y = bottomNavOffsetY.toFloat()
         }
         firstCurveEnd.apply {
             x = offsetX + (w / 2f)
-            y = bottomNavOffsetY + FAB_RADIUS + (FAB_RADIUS / 4)
+            y = bottomNavOffsetY + FAB_RADIUS + curveBottomOffset
         }
         firstCurveControlPoint1.apply {
             x = firstCurveStart.x + TOP_CONTROL_X
@@ -284,7 +402,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // second curve
         secondCurveStart.set(firstCurveEnd.x, firstCurveEnd.y)
         secondCurveEnd.apply {
-            x = offsetX + (w / 2) + CURVE_OFFSET
+            x = offsetX + (w / 2) + CURVE_WIDTH
             y = bottomNavOffsetY.toFloat()
         }
         secondCurveControlPoint1.apply {
@@ -332,9 +450,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        Log.d(TAG, "size: ($w, $h), center: (${w / 2}, ${h / 2})")
         // by default make the center item active
         menuWidth = w / menuItems.size
+        Log.d(TAG, "size: ($w, $h), center: (${w / 2}, ${h / 2}), menuWidth: $menuWidth")
         computeCurve(0, menuWidth)
         // let the listener know about the initial item selection
 //        menuClickListener?.invoke(menuWidth * selectedItem, menuWidth, selectedItem)
@@ -345,13 +463,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val centerX = menuWidth * selectedItem + menuWidth / 2f
         paint.color = fabColor
         canvas.drawCircle(centerX, centerY, indicatorSize / 2f, paint)
-        paint.color = Color.BLACK
+        paint.colorFilter = activeColorFilter
         canvas.drawBitmap(
             menuIcons[selectedItem],
             (centerX - menuIcons[selectedItem].width / 2f),
             (centerY - menuIcons[selectedItem].height / 2f),
             paint
         )
+        paint.colorFilter = null
         paint.color = Color.WHITE
         canvas.drawPath(path, paint)
     }
