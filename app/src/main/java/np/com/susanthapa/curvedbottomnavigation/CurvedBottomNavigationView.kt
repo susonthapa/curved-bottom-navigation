@@ -46,16 +46,28 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val secondCurveControlPoint1 = PointF()
     private val secondCurveControlPoint2 = PointF()
 
-    private val path: Path = Path()
-    private val paint: Paint = Paint().apply {
-        style = Paint.Style.FILL_AND_STROKE
-        color = Color.WHITE
-    }
 
     // icon colors
     private val unSelectedIconTint = ContextCompat.getColor(context, R.color.color_BDBDBD)
     private val activeIconTint = ContextCompat.getColor(context, R.color.color_000000)
     private val activeColorFilter = PorterDuffColorFilter(activeIconTint, PorterDuff.Mode.SRC_IN)
+
+    // paint and paths
+    private val path: Path = Path()
+    private val bezierPaint: Paint = Paint().apply {
+        style = Paint.Style.FILL_AND_STROKE
+        color = Color.WHITE
+        setShadowLayer(8.toPx(context).toFloat(), 0f, 6f, context.getColorRes(R.color.color_75000000))
+    }
+    private val fabPaint: Paint = Paint().apply {
+        style = Paint.Style.FILL_AND_STROKE
+        color = Color.WHITE
+        setShadowLayer(6.toPx(context).toFloat(), 0f, 6f, context.getColorRes(R.color.color_75000000))
+    }
+    private val iconPaint: Paint = Paint().apply {
+        style = Paint.Style.FILL_AND_STROKE
+        colorFilter = activeColorFilter
+    }
 
     private lateinit var menuItems: Array<Int>
     private lateinit var menuImageViews: Array<ImageView>
@@ -93,6 +105,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.colorAccent, typedValue, true)
         fabColor = Color.WHITE
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     fun setMenuItems(menuItems: Array<Int>) {
@@ -502,18 +515,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        paint.color = fabColor
-        canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, paint)
-        paint.colorFilter = activeColorFilter
+        canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, fabPaint)
         canvas.drawBitmap(
             menuIcons[selectedItem],
             (centerX - menuIcons[selectedItem].width / 2f),
             (curCenterY - menuIcons[selectedItem].height / 2f),
-            paint
+            iconPaint
         )
-        paint.colorFilter = null
-        paint.color = Color.WHITE
-        canvas.drawPath(path, paint)
+        canvas.drawPath(path, bezierPaint)
     }
 
 }
