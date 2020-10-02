@@ -7,5 +7,7 @@ import androidx.annotation.DrawableRes
  */
 data class MenuItem(
     @DrawableRes
-    val icon: Int
+    val icon: Int,
+    @DrawableRes
+    val avdIcon: Int
 )

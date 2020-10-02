@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import kotlin.math.abs
 
 /**
@@ -84,6 +85,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private lateinit var menuItems: Array<MenuItem>
     private lateinit var bottomNavItemViews: Array<BottomNavItemView>
     private lateinit var menuIcons: Array<Bitmap>
+    private lateinit var menuAvds: Array<AnimatedVectorDrawableCompat>
     private var menuWidth: Int = 0
     private var offsetX: Int = 0
     private var selectedItem: Int = -1
@@ -129,6 +131,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 ResourcesCompat.getDrawable(resources, menuItems[it].icon, context.theme)!!
             drawable.setTint(unSelectedIconTint)
             drawable.toBitmap()
+        }
+        menuAvds = Array(menuItems.size) {
+            AnimatedVectorDrawableCompat.create(context, menuItems[it].avdIcon)!!
         }
         initializeBottomItems(menuItems)
     }
@@ -221,6 +226,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val centerYAnimatorShow = showFAB(fabYOffset, index)
         centerYAnimatorShow.startDelay = slideAnimDuration / 2
         centerYAnimatorShow.duration = slideAnimDuration / 2
+        menuAvds[index].start()
 
         val set = AnimatorSet()
         set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
@@ -451,12 +457,19 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, fabPaint)
-        canvas.drawBitmap(
-            menuIcons[selectedItem],
-            (centerX - menuIcons[selectedItem].width / 2f),
-            (curCenterY - menuIcons[selectedItem].height / 2f),
-            iconPaint
+        menuAvds[selectedItem].setBounds(
+            (centerX - menuIcons[selectedItem].width / 2).toInt(),
+            (curCenterY - menuIcons[selectedItem].height / 2).toInt(),
+            (centerX + menuIcons[selectedItem].width / 2).toInt(),
+            (curCenterY + menuIcons[selectedItem].height / 2).toInt()
         )
+        menuAvds[selectedItem].draw(canvas)
+//        canvas.drawBitmap(
+//            menuIcons[selectedItem],
+//            (centerX - menuIcons[selectedItem].width / 2f),
+//            (curCenterY - menuIcons[selectedItem].height / 2f),
+//            iconPaint
+//        )
         canvas.drawPath(path, bezierPaint)
     }
 
