@@ -29,7 +29,7 @@ class BottomNavLayout @JvmOverloads constructor(
                 marginStart = left
             }
             binding.curvedFab.layoutParams = newLayoutParams
-            binding.curvedFab.setImageResource(bottomNavigation.getMenuItems()[index])
+//            binding.curvedFab.setImageResource(bottomNavigation.getMenuItems()[index])
         }
     }
 

@@ -28,11 +28,11 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         val menuItems = arrayOf(
-            R.drawable.ic_home_black_24dp,
-            R.drawable.ic_dashboard_black_24dp,
-            R.drawable.ic_notifications_black_24dp,
-            R.drawable.ic_baseline_access_alarm_24,
-            R.drawable.ic_baseline_settings_24
+            MenuItem(R.drawable.ic_home_black_24dp),
+            MenuItem(R.drawable.ic_dashboard_black_24dp),
+            MenuItem(R.drawable.ic_notifications_black_24dp),
+            MenuItem(R.drawable.ic_baseline_access_alarm_24),
+            MenuItem(R.drawable.ic_baseline_settings_24)
         )
         binding.navView.setMenuItems(menuItems)
 //        binding.navView.bottomNavigation.setupWithNavController(navController)
