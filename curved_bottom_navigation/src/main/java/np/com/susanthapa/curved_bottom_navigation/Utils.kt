@@ -1,4 +1,4 @@
-package np.com.susanthapa.curvedbottomnavigation
+package np.com.susanthapa.curved_bottom_navigation
 
 import android.content.Context
 import android.util.DisplayMetrics

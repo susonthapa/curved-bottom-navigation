@@ -7,6 +7,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import np.com.susanthapa.curved_bottom_navigation.MenuItem
 import np.com.susanthapa.curvedbottomnavigation.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
