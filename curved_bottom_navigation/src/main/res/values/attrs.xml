@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CurvedBottomNavigationView">
+        <attr name="cbn_selectedColor" format="color" />
+        <attr name="cbn_unSelectedColor" format="color" />
+        <attr name="cbn_animDuration" format="integer" />
+        <attr name="cbn_fabElevation" format="dimension" />
+        <attr name="cbn_elevation" format="dimension"/>
+        <attr name="cbn_fabBg" format="color" />
+        <attr name="cbn_bg" format="color" />
+    </declare-styleable>
+</resources>
