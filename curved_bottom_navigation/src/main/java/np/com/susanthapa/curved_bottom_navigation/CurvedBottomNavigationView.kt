@@ -76,16 +76,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             context.getColorRes(R.color.color_75000000)
         )
     }
-    private val iconPaint: Paint = Paint().apply {
-        style = Paint.Style.FILL_AND_STROKE
-        color = Color.BLACK
-        colorFilter = activeColorFilter
-    }
 
     private lateinit var menuItems: Array<MenuItem>
     private lateinit var bottomNavItemViews: Array<BottomNavItemView>
     private lateinit var menuIcons: Array<Bitmap>
-    private lateinit var menuAvds: Array<AnimatedVectorDrawableCompat>
+    private lateinit var menuAVDs: Array<AnimatedVectorDrawableCompat>
     private var menuWidth: Int = 0
     private var offsetX: Int = 0
     private var selectedItem: Int = -1
@@ -111,7 +106,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val fabColor: Int
 
     // listener for the menuItemClick
-    var menuClickListener: ((Int, Int, Int) -> Unit)? = null
+    private var menuItemClickListener: ((Int) -> Unit)? = null
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
@@ -132,14 +127,20 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             drawable.setTint(unSelectedIconTint)
             drawable.toBitmap()
         }
-        menuAvds = Array(menuItems.size) {
-            AnimatedVectorDrawableCompat.create(context, menuItems[it].avdIcon)!!
+        menuAVDs = Array(menuItems.size) {
+            val avd = AnimatedVectorDrawableCompat.create(context, menuItems[it].avdIcon)!!
+            avd.colorFilter = activeColorFilter
+            avd
         }
         initializeBottomItems(menuItems)
     }
 
     fun getMenuItems(): Array<MenuItem> {
         return menuItems
+    }
+
+    fun setOnMenuItemClickListener(menuItemClickListener: (Int) -> Unit) {
+        this.menuItemClickListener = menuItemClickListener
     }
 
     private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int = 0) {
@@ -185,6 +186,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         val newOffsetX = menuWidth * index
         animateItemSelection(newOffsetX, menuWidth, index)
+        // notify the listener
+        menuItemClickListener?.invoke(index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {
@@ -226,7 +229,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val centerYAnimatorShow = showFAB(fabYOffset, index)
         centerYAnimatorShow.startDelay = slideAnimDuration / 2
         centerYAnimatorShow.duration = slideAnimDuration / 2
-        menuAvds[index].start()
+        menuAVDs[index].start()
 
         val set = AnimatorSet()
         set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
@@ -457,19 +460,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, fabPaint)
-        menuAvds[selectedItem].setBounds(
+        menuAVDs[selectedItem].setBounds(
             (centerX - menuIcons[selectedItem].width / 2).toInt(),
             (curCenterY - menuIcons[selectedItem].height / 2).toInt(),
             (centerX + menuIcons[selectedItem].width / 2).toInt(),
             (curCenterY + menuIcons[selectedItem].height / 2).toInt()
         )
-        menuAvds[selectedItem].draw(canvas)
-//        canvas.drawBitmap(
-//            menuIcons[selectedItem],
-//            (centerX - menuIcons[selectedItem].width / 2f),
-//            (curCenterY - menuIcons[selectedItem].height / 2f),
-//            iconPaint
-//        )
+        menuAVDs[selectedItem].draw(canvas)
         canvas.drawPath(path, bezierPaint)
     }
 

@@ -36,6 +36,17 @@ class MainActivity : AppCompatActivity() {
             MenuItem(R.drawable.ic_baseline_settings_24, R.drawable.avd_settings)
         )
         binding.navView.setMenuItems(menuItems)
+        binding.navView.setOnMenuItemClickListener {
+            findNavController(R.id.nav_host_fragment).apply {
+                when (it) {
+                    0 -> navigate(R.id.navigation_dashboard, null, null)
+                    1 -> navigate(R.id.navigation_home, null, null)
+                    2 -> navigate(R.id.navigation_notifications, null, null)
+                    3 -> navigate(R.id.navigation_dashboard, null, null)
+                    4 -> navigate(R.id.navigation_home, null, null)
+                }
+            }
+        }
 //        binding.navView.bottomNavigation.setupWithNavController(navController)
     }
 }
