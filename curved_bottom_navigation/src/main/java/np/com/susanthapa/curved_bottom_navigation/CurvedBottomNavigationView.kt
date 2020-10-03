@@ -15,6 +15,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavGraph
+import androidx.navigation.NavOptions
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import kotlin.math.abs
 
@@ -106,7 +110,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val fabColor: Int
 
     // listener for the menuItemClick
-    private var menuItemClickListener: ((Int) -> Unit)? = null
+    private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
@@ -139,8 +143,39 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return menuItems
     }
 
-    fun setOnMenuItemClickListener(menuItemClickListener: (Int) -> Unit) {
+    fun setOnMenuItemClickListener(menuItemClickListener: (MenuItem, Int) -> Unit) {
         this.menuItemClickListener = menuItemClickListener
+    }
+
+    fun setupWithNavController(navController: NavController) {
+        setOnMenuItemClickListener { item, index ->
+            if (item.layoutId == -1) {
+                Log.w(TAG, "please set the proper layout id, skipping the navigation!")
+                return@setOnMenuItemClickListener
+            }
+            val builder = NavOptions.Builder()
+                .setLaunchSingleTop(true)
+                .setEnterAnim(R.anim.nav_default_enter_anim)
+                .setExitAnim(R.anim.nav_default_exit_anim)
+                .setPopEnterAnim(R.anim.nav_default_pop_enter_anim)
+                .setPopExitAnim(R.anim.nav_default_pop_exit_anim)
+            // pop to the navigation graph's start  destination
+            builder.setPopUpTo(findStartDestination(navController.graph).id, false)
+            val options = builder.build()
+            try {
+                navController.navigate(item.layoutId, null, options)
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "unable to navigate!", e)
+            }
+        }
+    }
+
+    private fun findStartDestination(graph: NavGraph): NavDestination {
+        var startDestination: NavDestination = graph
+        while (startDestination is NavGraph) {
+            startDestination = graph.findNode(graph.startDestination)!!
+        }
+        return startDestination
     }
 
     private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int = 0) {
@@ -158,6 +193,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             menuItem.setOnClickListener {
                 prevSelectedItem = selectedItem
                 onMenuItemClick(index)
+                // notify the listener
+                menuItemClickListener?.invoke(item, index)
             }
             if (index == activeItem) {
                 // render the icon in fab instead of image view, but still allocate the space
@@ -186,8 +223,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         val newOffsetX = menuWidth * index
         animateItemSelection(newOffsetX, menuWidth, index)
-        // notify the listener
-        menuItemClickListener?.invoke(index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {

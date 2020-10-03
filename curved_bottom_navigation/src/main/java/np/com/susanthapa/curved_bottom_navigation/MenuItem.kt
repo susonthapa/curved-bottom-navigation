@@ -1,6 +1,8 @@
 package np.com.susanthapa.curved_bottom_navigation
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
+import androidx.annotation.NavigationRes
 
 /**
  * Created by suson on 10/1/20
@@ -9,5 +11,7 @@ data class MenuItem(
     @DrawableRes
     val icon: Int,
     @DrawableRes
-    val avdIcon: Int
+    val avdIcon: Int,
+    @IdRes
+    val layoutId: Int = -1
 )
