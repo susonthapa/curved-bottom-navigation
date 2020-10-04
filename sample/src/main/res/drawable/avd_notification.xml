@@ -10,10 +10,9 @@
             android:viewportHeight="24">
             <path
                 android:name="path_1"
-                android:pathData="M 12 3.5 L 2 12.5 L 5 12.5 L 5 20.5 L 11 20.5 L 11 14.5 L 13 14.5 L 13 20.5 L 19 20.5 L 19 12.5 L 22 12.5 Z"
+                android:pathData="M 20.658 19.305 L 20.658 18.222 L 18.494 16.058 L 18.494 10.646 C 18.494 7.323 16.729 4.542 13.623 3.806 L 13.623 3.07 C 13.623 2.171 12.898 1.446 12 1.446 C 11.101 1.446 10.376 2.171 10.376 3.07 L 10.376 3.806 C 7.28 4.542 5.505 7.312 5.505 10.646 L 5.505 16.058 L 3.341 18.222 L 3.341 19.305 L 9.835 19.323 C 9.835 20.513 10.809 21.487 11.999 21.487 C 13.19 21.487 14.164 20.513 14.164 19.323 Z"
                 android:strokeColor="#000000"
-                android:strokeWidth="1.5"
-                android:strokeLineJoin="round"/>
+                android:strokeWidth="1.499983394"/>
         </vector>
     </aapt:attr>
     <target android:name="path_1">

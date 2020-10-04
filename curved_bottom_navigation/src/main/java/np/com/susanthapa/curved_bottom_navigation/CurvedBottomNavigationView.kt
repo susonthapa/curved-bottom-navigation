@@ -54,13 +54,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
 
     // default values for custom attributes
-    var selectedColor = Color.BLACK
+    var selectedColor = Color.parseColor("#1F1F1F")
         set(value) {
             field = value
             initializeMenuAVDs()
             invalidate()
         }
-    var unSelectedColor = Color.LTGRAY
+    var unSelectedColor = Color.parseColor("#CECECE")
         set(value) {
             field = value
             initializeMenuIcons()
@@ -298,7 +298,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             Log.w(TAG, "same icon multiple clicked, skipping animation!")
             return
         }
-        // compute the animation time dynamically based on the distance between clicks
+        // time allocated for each icon in the bottom nav
         val iconAnimSlot = animDuration / diff
         // compute the time it will take to move from start to bottom of the curve
         val curveBottomOffset = (((curveWidth / 2) * animDuration) / this.width).toLong()
