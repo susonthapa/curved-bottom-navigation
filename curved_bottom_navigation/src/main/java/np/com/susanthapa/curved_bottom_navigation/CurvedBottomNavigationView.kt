@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
+import androidx.annotation.IdRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -54,13 +54,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
 
     // default values for custom attributes
-    var selectedColor = Color.parseColor("#1F1F1F")
+    var selectedColor = Color.parseColor("#000000")
         set(value) {
             field = value
             initializeMenuAVDs()
             invalidate()
         }
-    var unSelectedColor = Color.parseColor("#CECECE")
+    var unSelectedColor = Color.parseColor("#8F8F8F")
         set(value) {
             field = value
             initializeMenuIcons()
@@ -70,8 +70,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     var animDuration: Long = 300L
 
-    var fabElevation = 6.toPx(context).toFloat()
-    var navElevation = 8.toPx(context).toFloat()
+    var fabElevation = 4.toPx(context).toFloat()
+    var navElevation = 6.toPx(context).toFloat()
 
     var fabBackgroundColor = Color.WHITE
     var navBackgroundColor = Color.WHITE
@@ -108,6 +108,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val centerY = indicatorSize / 2f + fabMargin
     private var centerX = -1f
     private var curCenterY = centerY
+
+    private var isAnimating = false
 
     // listener for the menuItemClick
     private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
@@ -173,14 +175,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 //        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
-    fun setMenuItems(menuItems: Array<MenuItem>) {
+    fun setMenuItems(menuItems: Array<MenuItem>, activeIndex: Int = 0) {
         this.menuItems = menuItems
         bottomNavItemViews = Array(menuItems.size) {
             BottomNavItemView(context)
         }
         initializeMenuIcons()
         initializeMenuAVDs()
-        initializeBottomItems(menuItems)
+        initializeBottomItems(menuItems, activeIndex)
     }
 
     private fun initializeMenuAVDs() {
@@ -210,26 +212,47 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun setupWithNavController(navController: NavController) {
-        setOnMenuItemClickListener { item, index ->
-            if (item.layoutId == -1) {
-                Log.w(TAG, "please set the proper layout id, skipping the navigation!")
-                return@setOnMenuItemClickListener
-            }
-            val builder = NavOptions.Builder()
-                .setLaunchSingleTop(true)
-                .setEnterAnim(R.anim.nav_default_enter_anim)
-                .setExitAnim(R.anim.nav_default_exit_anim)
-                .setPopEnterAnim(R.anim.nav_default_pop_enter_anim)
-                .setPopExitAnim(R.anim.nav_default_pop_exit_anim)
-            // pop to the navigation graph's start  destination
-            builder.setPopUpTo(findStartDestination(navController.graph).id, false)
-            val options = builder.build()
-            try {
-                navController.navigate(item.layoutId, null, options)
-            } catch (e: IllegalArgumentException) {
-                Log.w(TAG, "unable to navigate!", e)
+        // initialize the menu
+        setOnMenuItemClickListener { item, _ ->
+            navigateToDestination(navController, item)
+        }
+        // setup destination change listener to properly sync the back button press
+        navController.addOnDestinationChangedListener { controller, destination, arguments ->
+            for (i in menuItems.indices) {
+                if (matchDestination(destination, menuItems[i].destinationId)) {
+                    onMenuItemClick(i)
+                }
             }
         }
+    }
+
+    private fun navigateToDestination(navController: NavController, item: MenuItem) {
+        if (item.destinationId == -1) {
+            throw RuntimeException("please set a valid id, unable the navigation!")
+        }
+        val builder = NavOptions.Builder()
+            .setLaunchSingleTop(true)
+            .setEnterAnim(R.anim.nav_default_enter_anim)
+            .setExitAnim(R.anim.nav_default_exit_anim)
+            .setPopEnterAnim(R.anim.nav_default_pop_enter_anim)
+            .setPopExitAnim(R.anim.nav_default_pop_exit_anim)
+        // pop to the navigation graph's start  destination
+        builder.setPopUpTo(findStartDestination(navController.graph).id, false)
+        val options = builder.build()
+        try {
+            navController.navigate(item.destinationId, null, options)
+        } catch (e: IllegalArgumentException) {
+            Log.w(TAG, "unable to navigate!", e)
+        }
+    }
+
+    private fun matchDestination(destination: NavDestination, @IdRes destinationId: Int): Boolean {
+        var currentDestination = destination
+        while (currentDestination.id != destinationId && currentDestination.parent != null) {
+            currentDestination = currentDestination.parent!!
+        }
+
+        return currentDestination.id == destinationId
     }
 
     private fun findStartDestination(graph: NavGraph): NavDestination {
@@ -237,10 +260,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         while (startDestination is NavGraph) {
             startDestination = graph.findNode(graph.startDestination)!!
         }
+
         return startDestination
     }
 
-    private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int = 0) {
+    private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int) {
         selectedItem = activeItem
         prevSelectedItem = selectedItem
         // clear layout
@@ -253,10 +277,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             val menuItem = bottomNavItemViews[index]
             menuItem.setMenuItem(item)
             menuItem.setOnClickListener {
-                prevSelectedItem = selectedItem
                 onMenuItemClick(index)
-                // notify the listener
-                menuItemClickListener?.invoke(item, index)
             }
             if (index == activeItem) {
                 // render the icon in fab instead of image view, but still allocate the space
@@ -275,6 +296,16 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     private fun onMenuItemClick(index: Int) {
+        if (selectedItem == index) {
+            Log.i(TAG, "same icon multiple clicked, skipping animation!")
+            return
+        }
+        if (isAnimating) {
+            Log.i(TAG, "animation is in progress, skipping navigation")
+            return
+        }
+        prevSelectedItem = selectedItem
+        selectedItem = index
         // make all item except current item invisible
         bottomNavItemViews.forEachIndexed { i, imageView ->
             if (prevSelectedItem == i) {
@@ -284,7 +315,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             }
         }
         val newOffsetX = menuWidth * index
+        isAnimating = true
         animateItemSelection(newOffsetX, menuWidth, index)
+        // notify the listener
+        menuItemClickListener?.invoke(menuItems[index], index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {
@@ -292,12 +326,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val propertyOffset = PropertyValuesHolder.ofInt(PROPERTY_OFFSET, offsetX, offset)
         val propertyCenterX = PropertyValuesHolder.ofFloat(PROPERTY_CENTER_X, centerX, finalCenterX)
         // watch the direction and compute the diff
-        val isLTR = (selectedItem - index) < 0
-        val diff = abs(selectedItem - index)
-        if (diff == 0) {
-            Log.w(TAG, "same icon multiple clicked, skipping animation!")
-            return
-        }
+        val isLTR = (prevSelectedItem - index) < 0
+        val diff = abs(prevSelectedItem - index)
         // time allocated for each icon in the bottom nav
         val iconAnimSlot = animDuration / diff
         // compute the time it will take to move from start to bottom of the curve
@@ -320,7 +350,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         )
         val fabYOffset = firstCurveEnd.y + fabRadius
         val hideTimeInterval = animDuration / 2
-        val centerYAnimatorHide = hideFAB(fabYOffset, index)
+        val centerYAnimatorHide = hideFAB(fabYOffset)
         centerYAnimatorHide.duration = hideTimeInterval
         val centerYAnimatorShow = showFAB(fabYOffset, index)
         centerYAnimatorShow.startDelay = animDuration / 2
@@ -444,13 +474,15 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 curCenterY = newCenterY
                 invalidate()
             }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    isAnimating = false
+                }
+            })
         }
     }
 
-    private fun hideFAB(
-        fabYOffset: Float,
-        index: Int
-    ): ValueAnimator {
+    private fun hideFAB(fabYOffset: Float): ValueAnimator {
         val propertyCenterY =
             PropertyValuesHolder.ofFloat(PROPERTY_CENTER_Y, centerY, fabYOffset)
         return ValueAnimator().apply {
@@ -460,12 +492,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 curCenterY = newCenterY
                 invalidate()
             }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    // only update the index after this hidden animation is complete
-                    selectedItem = index
-                }
-            })
         }
     }
 

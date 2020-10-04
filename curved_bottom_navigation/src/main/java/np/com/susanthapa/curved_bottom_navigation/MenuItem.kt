@@ -13,5 +13,5 @@ data class MenuItem(
     @DrawableRes
     val avdIcon: Int,
     @IdRes
-    val layoutId: Int = -1
+    val destinationId: Int = -1
 )
