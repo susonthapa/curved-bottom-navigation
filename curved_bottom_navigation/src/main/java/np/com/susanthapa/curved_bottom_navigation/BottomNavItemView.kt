@@ -94,7 +94,7 @@ class BottomNavItemView @JvmOverloads constructor(
 
     private fun getIconShowAnimation(time: Long): ValueAnimator {
         val translateYProperty =
-            PropertyValuesHolder.ofFloat("translationY", height * 0.1f, 0f)
+            PropertyValuesHolder.ofFloat("translationY", height * 0.2f, 0f)
         val alphaProperty = PropertyValuesHolder.ofFloat("alpha", 0f, 1f)
         return ObjectAnimator.ofPropertyValuesHolder(
             this,

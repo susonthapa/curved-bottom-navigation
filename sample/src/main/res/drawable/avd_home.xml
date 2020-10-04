@@ -22,15 +22,15 @@
                 <objectAnimator
                     android:propertyName="trimPathOffset"
                     android:duration="500"
-                    android:valueFrom="0"
-                    android:valueTo="0.3"
+                    android:valueFrom="0.3"
+                    android:valueTo="0"
                     android:valueType="floatType"
                     android:interpolator="@android:anim/linear_interpolator"/>
                 <objectAnimator
-                    android:propertyName="trimPathEnd"
+                    android:propertyName="trimPathStart"
                     android:duration="600"
-                    android:valueFrom="0"
-                    android:valueTo="1"
+                    android:valueFrom="1"
+                    android:valueTo="0"
                     android:valueType="floatType"
                     android:interpolator="@android:anim/linear_interpolator"/>
             </set>

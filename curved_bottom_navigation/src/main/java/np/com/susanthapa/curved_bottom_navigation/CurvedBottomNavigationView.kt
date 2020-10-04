@@ -265,8 +265,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int) {
-        selectedItem = activeItem
-        prevSelectedItem = selectedItem
         // clear layout
         removeAllViews()
         val bottomNavLayout = LinearLayout(context)
@@ -302,6 +300,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         if (isAnimating) {
             Log.i(TAG, "animation is in progress, skipping navigation")
+            return
+        }
+        if (selectedItem == -1) {
+            // this is the first time, only show the AVD animation
+            menuAVDs[index].start()
+            selectedItem = index
             return
         }
         prevSelectedItem = selectedItem
