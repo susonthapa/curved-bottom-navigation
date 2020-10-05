@@ -88,8 +88,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private lateinit var menuAVDs: Array<AnimatedVectorDrawableCompat>
     private var menuWidth: Int = 0
     private var offsetX: Int = 0
-    private var selectedItem: Int = -1
-    private var prevSelectedItem: Int = -1
+    private var selectedIndex: Int = -1
+    private var fabIconIndex: Int = -1
+    private var prevSelectedIndex: Int = -1
     private val indicatorSize = resources.getDimensionPixelSize(R.dimen.cbn_fab_size)
     private val bottomNavOffsetY =
         resources.getDimensionPixelSize(R.dimen.cbn_layout_height) - resources.getDimensionPixelSize(
@@ -294,7 +295,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     private fun onMenuItemClick(index: Int) {
-        if (selectedItem == index) {
+        if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
             return
         }
@@ -302,17 +303,20 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             Log.i(TAG, "animation is in progress, skipping navigation")
             return
         }
-        if (selectedItem == -1) {
+        if (selectedIndex == -1) {
             // this is the first time, only show the AVD animation
             menuAVDs[index].start()
-            selectedItem = index
+            selectedIndex = index
+            fabIconIndex = selectedIndex
+            prevSelectedIndex = selectedIndex
             return
         }
-        prevSelectedItem = selectedItem
-        selectedItem = index
+        fabIconIndex = selectedIndex
+        prevSelectedIndex = selectedIndex
+        selectedIndex = index
         // make all item except current item invisible
         bottomNavItemViews.forEachIndexed { i, imageView ->
-            if (prevSelectedItem == i) {
+            if (prevSelectedIndex == i) {
                 // show the previous selected view with alpha 0
                 imageView.visibility = VISIBLE
                 imageView.alpha = 0f
@@ -330,8 +334,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val propertyOffset = PropertyValuesHolder.ofInt(PROPERTY_OFFSET, offsetX, offset)
         val propertyCenterX = PropertyValuesHolder.ofFloat(PROPERTY_CENTER_X, centerX, finalCenterX)
         // watch the direction and compute the diff
-        val isLTR = (prevSelectedItem - index) < 0
-        val diff = abs(prevSelectedItem - index)
+        val isLTR = (prevSelectedIndex - index) < 0
+        val diff = abs(prevSelectedIndex - index)
         // time allocated for each icon in the bottom nav
         val iconAnimSlot = animDuration / diff
         // compute the time it will take to move from start to bottom of the curve
@@ -359,7 +363,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val centerYAnimatorShow = showFAB(fabYOffset, index)
         centerYAnimatorShow.startDelay = animDuration / 2
         centerYAnimatorShow.duration = animDuration / 2
-        menuAVDs[index].start()
 
         val set = AnimatorSet()
         set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
@@ -408,7 +411,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 // compute the index above which this curve is moving
                 var overIconIndex = ((currentTime + (iconAnimSlot)) / iconAnimSlot).toInt()
                 if (isLTR) {
-                    overIconIndex += prevSelectedItem
+                    overIconIndex += prevSelectedIndex
                     // prevent animatedFraction to be 0
                     if (overIconIndex > index) {
                         Log.w(TAG, "overIconIndex: $overIconIndex overflow, skipping")
@@ -416,7 +419,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                     }
                 } else {
                     // recompute the index when we move from right to left
-                    overIconIndex = prevSelectedItem - overIconIndex
+                    overIconIndex = prevSelectedIndex - overIconIndex
                     // prevent animatedFraction to be 0
                     if (overIconIndex < index) {
                         Log.w(TAG, "overIconIndex: $overIconIndex underflow, skipping")
@@ -429,14 +432,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                         bottomNavItemViews[index].startDestinationAnimation(curveBottomOffset)
                         if (diff == 1) {
                             // also animate the source icon as this is the adjacent click event
-                            bottomNavItemViews[prevSelectedItem].startSourceAnimation(
+                            bottomNavItemViews[prevSelectedIndex].startSourceAnimation(
                                 slideAnimDuration
                             )
                         }
                     }
-                    abs(overIconIndex - prevSelectedItem) == 1 -> {
+                    abs(overIconIndex - prevSelectedIndex) == 1 -> {
                         // we currently in the adjacent icon of the current source icon, show source animations
-                        bottomNavItemViews[prevSelectedItem].startSourceAnimation(slideAnimDuration)
+                        bottomNavItemViews[prevSelectedIndex].startSourceAnimation(slideAnimDuration)
                         // also initialize the intermediate animations
                         bottomNavItemViews[overIconIndex].startIntermediateAnimation(
                             slideAnimDuration,
@@ -468,6 +471,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return ValueAnimator().apply {
             setValues(propertyCenterYReverse)
             addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator?) {
+                    menuAVDs[index].start()
+                }
+
                 override fun onAnimationEnd(animation: Animator?) {
                     // disable the clicks in the target view
                     bottomNavItemViews[index].visibility = INVISIBLE
@@ -496,6 +503,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 curCenterY = newCenterY
                 invalidate()
             }
+            addListener(object: AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    fabIconIndex = selectedIndex
+                }
+            })
         }
     }
 
@@ -579,20 +591,20 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // by default make the center item active
         menuWidth = w / menuItems.size
         Log.d(TAG, "size: ($w, $h), center: (${w / 2}, ${h / 2}), menuWidth: $menuWidth")
-        centerX = menuWidth * selectedItem + menuWidth / 2f
+        centerX = menuWidth * selectedIndex + menuWidth / 2f
         computeCurve(0, menuWidth)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, fabPaint)
-        menuAVDs[selectedItem].setBounds(
-            (centerX - menuIcons[selectedItem].width / 2).toInt(),
-            (curCenterY - menuIcons[selectedItem].height / 2).toInt(),
-            (centerX + menuIcons[selectedItem].width / 2).toInt(),
-            (curCenterY + menuIcons[selectedItem].height / 2).toInt()
+        menuAVDs[fabIconIndex].setBounds(
+            (centerX - menuIcons[fabIconIndex].width / 2).toInt(),
+            (curCenterY - menuIcons[fabIconIndex].height / 2).toInt(),
+            (centerX + menuIcons[fabIconIndex].width / 2).toInt(),
+            (curCenterY + menuIcons[fabIconIndex].height / 2).toInt()
         )
-        menuAVDs[selectedItem].draw(canvas)
+        menuAVDs[fabIconIndex].draw(canvas)
         canvas.drawPath(path, navPaint)
     }
 
