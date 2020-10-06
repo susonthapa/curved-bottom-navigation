@@ -3,6 +3,7 @@ package np.com.susanthapa.curved_bottom_navigation
 import android.animation.*
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
@@ -115,6 +116,19 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // listener for the menuItemClick
     private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
 
+    // callback to synchronize the animation fo AVD and this canvas when software canvas is used
+    private val avdUpdateCallback = object: Drawable.Callback {
+        override fun invalidateDrawable(who: Drawable) {
+            this@CurvedBottomNavigationView.invalidate()
+        }
+
+        override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {
+        }
+
+        override fun unscheduleDrawable(who: Drawable, what: Runnable) {
+        }
+    }
+
     init {
         // remove the bg as will do our own drawing
         setBackgroundColor(Color.TRANSPARENT)
@@ -173,7 +187,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 shadowColor
             )
         }
-//        setLayerType(LAYER_TYPE_SOFTWARE, null)
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     fun setMenuItems(menuItems: Array<MenuItem>, activeIndex: Int = 0) {
@@ -183,6 +197,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         initializeMenuIcons()
         initializeMenuAVDs()
+        // set the initial callback to the active item, so that we can animate AVD during app startup
+        menuAVDs[activeIndex].callback = avdUpdateCallback
         initializeBottomItems(menuItems, activeIndex)
     }
 
@@ -312,6 +328,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             return
         }
         fabIconIndex = selectedIndex
+        menuAVDs[index].stop()
         prevSelectedIndex = selectedIndex
         selectedIndex = index
         // make all item except current item invisible
@@ -472,6 +489,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             setValues(propertyCenterYReverse)
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator?) {
+                    // set the callback before starting the animation as the Drawable class
+                    // internally uses WeakReference. So settings the callback only during initialization
+                    // will result in callback being cleared after certain time. This is a good place
+                    // to set the callback so that we can sync the drawable animation with our canvas
+                    menuAVDs[index].callback = avdUpdateCallback
                     menuAVDs[index].start()
                 }
 
@@ -598,6 +620,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawCircle(centerX, curCenterY, indicatorSize / 2f, fabPaint)
+        Log.d(TAG, "canvas(callback) -> $fabIconIndex: ${menuAVDs[fabIconIndex].callback}")
         menuAVDs[fabIconIndex].setBounds(
             (centerX - menuIcons[fabIconIndex].width / 2).toInt(),
             (curCenterY - menuIcons[fabIconIndex].height / 2).toInt(),
