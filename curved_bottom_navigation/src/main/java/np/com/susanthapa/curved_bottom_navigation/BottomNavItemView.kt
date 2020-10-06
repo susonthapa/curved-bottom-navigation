@@ -22,6 +22,8 @@ class BottomNavItemView @JvmOverloads constructor(
         const val TAG = "BottomNavItemView"
     }
 
+    // the animation progress as the caller might call multiple times even when we
+    // might have animation running
     private var isAnimating = false
 
 
@@ -39,7 +41,6 @@ class BottomNavItemView @JvmOverloads constructor(
         if (isAnimating) {
             return
         }
-        Log.d(TAG, "animating intermediate icon")
         // hide the icon within the time the curve reaches the start of this icon slot
         val hideAnimation = getIconHideAnimation(offset)
         // animate only when the curve reaches the end of this icon slot
@@ -61,7 +62,6 @@ class BottomNavItemView @JvmOverloads constructor(
         if (isAnimating) {
             return
         }
-        Log.d(TAG, "animating source icon")
         // show the icon
         val showAnimation = getIconShowAnimation(time)
         showAnimation.interpolator = DecelerateInterpolator()
@@ -73,7 +73,6 @@ class BottomNavItemView @JvmOverloads constructor(
         if (isAnimating) {
             return
         }
-        Log.d(TAG, "animating destination icon")
         // hide the icon
         val hideAnimation = getIconHideAnimation(time)
         hideAnimation.interpolator = DecelerateInterpolator()
