@@ -2,6 +2,7 @@ package np.com.susanthapa.curved_bottom_navigation
 
 import android.animation.*
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -116,7 +117,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // listener for the menuItemClick
     private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
 
-    // callback to synchronize the animation fo AVD and this canvas when software canvas is used
+    // callback to synchronize the animation of AVD and this canvas when software canvas is used
     private val avdUpdateCallback = object: Drawable.Callback {
         override fun invalidateDrawable(who: Drawable) {
             this@CurvedBottomNavigationView.invalidate()
@@ -187,6 +188,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 shadowColor
             )
         }
+        // use software rendering instead of hardware acceleration as hardware acceleration doesn't
+        // support shadowLayer below API 28
         setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
@@ -215,7 +218,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         menuIcons = Array(menuItems.size) {
             val drawable =
                 ResourcesCompat.getDrawable(resources, menuItems[it].icon, context.theme)!!
-            drawable.setTint(unSelectedColor)
             drawable.toBitmap()
         }
     }
@@ -290,6 +292,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         context.theme.resolveAttribute(R.attr.selectableItemBackground, typedValue, true)
         menuItems.forEachIndexed { index, item ->
             val menuItem = bottomNavItemViews[index]
+            menuItem.imageTintList = ColorStateList.valueOf(unSelectedColor)
             menuItem.setMenuItem(item)
             menuItem.setOnClickListener {
                 onMenuItemClick(index)
