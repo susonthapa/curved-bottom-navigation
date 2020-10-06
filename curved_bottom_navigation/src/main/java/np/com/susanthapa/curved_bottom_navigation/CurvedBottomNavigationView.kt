@@ -653,6 +653,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         path.close()
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // our minimum height is defined in R.dimen.cbn_layout_height
+        // currently we don't support custom height and use defaults suggested by Material Design Specs
+        val h: Int = paddingTop + paddingBottom + resources.getDimensionPixelSize(R.dimen.cbn_layout_height)
+        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         // compute the cell width and centerX for the fab
