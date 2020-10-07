@@ -25,7 +25,7 @@ dependencies {
 }
 ```
 
-**Important!** This project uses AndroidX so make sure have AndroidX enabled by adding these line tog `gradle.properties`
+**Important!** This project uses AndroidX so make sure you have AndroidX enabled by adding these lines to `gradle.properties`
 ```properties
 android.useAndroidX=true
 android.enableJetifier=true
@@ -43,7 +43,7 @@ Add `CurvedBottomNavigationView` in your layout xml file.
 ```
 
 ### Setup in Code
-In your `onCreate` of Activity create a list of `CbnMenuItem` that you want to appear in the `CurvedBottomNavigationView`. Then pass the list to the `setMenuItems()` function that also takes activeIndex(which is 0 by default) from which you can control which position item should be active.
+In your `onCreate()` of Activity create a list of `CbnMenuItem` that you want to appear in the `CurvedBottomNavigationView`. Then pass the list to the `setMenuItems()` function that also takes activeIndex(which is 0 by default) from which you can control which position item should be active when it is initialized.
 ```kotlin
 val menuItems = arrayOf(
     CbnMenuItem(
@@ -74,11 +74,12 @@ val menuItems = arrayOf(
 )        
 binding.navView.setMenuItems(menuItems, 2)
 ```
+
 ### Handling Navigation with Listener
-To listen whenver the item is clicked you can pass a lambda to `setOnMenuItemClickListener`.
+To listen whenever the menu item is clicked you can pass a lambda to `setOnMenuItemClickListener`.
 ```kotlin
 binding.navView.setOnMenuItemClickListener { cbnMenuItem, index -> 
-    // handle your own navigation or other stuffs here
+    // handle your own navigation here
 }
 ```
 
@@ -93,7 +94,6 @@ If you need to manually set the active item you can call the `onMenuItemClick()`
 ```kotlin
 binding.navView.onMenuItemClick(2)
 ```
-
 
 ### XML Attribues
 Attribute | Description | Default Value
