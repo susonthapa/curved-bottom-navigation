@@ -31,17 +31,17 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         val menuItems = arrayOf(
-            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
-            CbnMenuItem(
-                R.drawable.ic_dashboard,
-                R.drawable.avd_dashboard,
-                R.id.navigation_dashboard
-            ),
             CbnMenuItem(
                 R.drawable.ic_notification,
                 R.drawable.avd_notification,
                 R.id.navigation_notifications
             ),
+            CbnMenuItem(
+                R.drawable.ic_dashboard,
+                R.drawable.avd_dashboard,
+                R.id.navigation_dashboard
+            ),
+            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
             CbnMenuItem(
                 R.drawable.ic_profile,
                 R.drawable.avd_profile,

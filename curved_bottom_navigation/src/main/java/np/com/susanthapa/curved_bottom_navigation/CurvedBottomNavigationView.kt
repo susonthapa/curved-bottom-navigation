@@ -255,10 +255,17 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         initializeMenuIcons()
         initializeMenuAVDs()
-        // set the initial callback to the active item, so that we can animate AVD during app startup
-        menuAVDs[activeIndex].callback = avdUpdateCallback
         initializeCurve(activeIndex)
         initializeBottomItems(cbnMenuItems, activeIndex)
+
+        // setup the initial AVD
+        setupInitialAVD(activeIndex)
+    }
+
+    private fun setupInitialAVD(activeIndex: Int) {
+        // set the initial callback to the active item, so that we can animate AVD during app startup
+        menuAVDs[activeIndex].callback = avdUpdateCallback
+        menuAVDs[selectedIndex].start()
     }
 
     private fun initializeCurve(index: Int) {
@@ -405,14 +412,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         if (isAnimating) {
             Log.i(TAG, "animation is in progress, skipping navigation")
-            return
-        }
-        if (selectedIndex == -1) {
-            // this is the first time, only show the AVD animation
-            menuAVDs[index].start()
-            selectedIndex = index
-            fabIconIndex = selectedIndex
-            prevSelectedIndex = selectedIndex
             return
         }
 
