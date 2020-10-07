@@ -15,7 +15,7 @@ ext {
     siteUrl = 'https://github.com/susonthapa/curved-bottom-navigation'    // git repo url
     gitUrl = 'https://github.com/susonthapa/curved-bottom-navigation.git' // git repo vcs url
 
-    libraryVersion = '0.6.0'      // library version
+    libraryVersion = '0.6.3'      // library version
 
     developerId = 'susonthapa'                // This is your bintray username
     developerName = 'Susan Thapa'              // Developer's name
@@ -38,6 +38,16 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // to prevent the addition of jvm-target
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
     tasks.withType(Javadoc).all {

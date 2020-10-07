@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import np.com.susanthapa.curved_bottom_navigation.MenuItem
+import np.com.susanthapa.curved_bottom_navigation.CbnMenuItem
 import np.com.susanthapa.curvedbottomnavigation.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -31,29 +31,29 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         val menuItems = arrayOf(
-            MenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
-            MenuItem(
+            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
+            CbnMenuItem(
                 R.drawable.ic_dashboard,
                 R.drawable.avd_dashboard,
                 R.id.navigation_dashboard
             ),
-            MenuItem(
+            CbnMenuItem(
                 R.drawable.ic_notification,
                 R.drawable.avd_notification,
                 R.id.navigation_notifications
             ),
-            MenuItem(
+            CbnMenuItem(
                 R.drawable.ic_profile,
                 R.drawable.avd_profile,
                 R.id.navigation_profile
             ),
-            MenuItem(
+            CbnMenuItem(
                 R.drawable.ic_settings,
                 R.drawable.avd_settings,
                 R.id.navigation_settings
             )
         )
-        binding.navView.setMenuItems(menuItems)
+        binding.navView.setMenuItems(menuItems, 2)
         binding.navView.setupWithNavController(navController)
     }
 }

@@ -27,8 +27,8 @@ class BottomNavItemView @JvmOverloads constructor(
     private var isAnimating = false
 
 
-    fun setMenuItem(item: MenuItem) {
-        setImageResource(item.icon)
+    fun setMenuItem(itemCbn: CbnMenuItem) {
+        setImageResource(itemCbn.icon)
         scaleType = ScaleType.CENTER
     }
 

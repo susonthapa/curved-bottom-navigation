@@ -16,6 +16,7 @@ import android.widget.LinearLayout
 import androidx.annotation.IdRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.doOnLayout
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -89,7 +90,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
 
     // initialize empty array so that we don't have to check if it's initialized or not
-    private var menuItems: Array<MenuItem> = arrayOf()
+    private var cbnMenuItems: Array<CbnMenuItem> = arrayOf()
     private lateinit var bottomNavItemViews: Array<BottomNavItemView>
     private lateinit var menuIcons: Array<Bitmap>
     private lateinit var menuAVDs: Array<AnimatedVectorDrawableCompat>
@@ -154,7 +155,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private var isAnimating = false
 
     // listener for the menuItemClick
-    private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
+    private var menuItemClickListener: ((CbnMenuItem, Int) -> Unit)? = null
 
     // control the rendering of the menu when the menu is empty
     private var isMenuInitialized = false
@@ -239,72 +240,84 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
-    fun setMenuItems(menuItems: Array<MenuItem>, activeIndex: Int = 0) {
-        if (menuItems.isEmpty()) {
+    fun setMenuItems(cbnMenuItems: Array<CbnMenuItem>, activeIndex: Int = 0) {
+        if (cbnMenuItems.isEmpty()) {
             isMenuInitialized = false
             return
         }
-        this.menuItems = menuItems
+        this.cbnMenuItems = cbnMenuItems
         // initialize the index
         fabIconIndex = activeIndex
         selectedIndex = activeIndex
         isMenuInitialized = true
-        bottomNavItemViews = Array(menuItems.size) {
+        bottomNavItemViews = Array(cbnMenuItems.size) {
             BottomNavItemView(context)
         }
         initializeMenuIcons()
         initializeMenuAVDs()
         // set the initial callback to the active item, so that we can animate AVD during app startup
         menuAVDs[activeIndex].callback = avdUpdateCallback
-        initializeBottomItems(menuItems, activeIndex)
         initializeCurve(activeIndex)
+        initializeBottomItems(cbnMenuItems, activeIndex)
     }
 
     private fun initializeCurve(index: Int) {
-        // compute the cell width and centerX for the fab
-        menuCellWidth = width / menuItems.size
-        val offsetX = menuCellWidth * index
-        centerX = offsetX + menuCellWidth / 2f
-        computeCurve(offsetX, menuCellWidth)
+        // only run when this layout has been laid out
+        doOnLayout {
+            // compute the cell width and centerX for the fab
+            menuCellWidth = width / cbnMenuItems.size
+            val offsetX = menuCellWidth * index
+            centerX = offsetX + menuCellWidth / 2f
+            computeCurve(offsetX, menuCellWidth)
+        }
     }
 
 
     private fun initializeMenuAVDs() {
         val activeColorFilter = PorterDuffColorFilter(selectedColor, PorterDuff.Mode.SRC_IN)
-        menuAVDs = Array(menuItems.size) {
-            val avd = AnimatedVectorDrawableCompat.create(context, menuItems[it].avdIcon)!!
+        menuAVDs = Array(cbnMenuItems.size) {
+            val avd = AnimatedVectorDrawableCompat.create(context, cbnMenuItems[it].avdIcon)!!
             avd.colorFilter = activeColorFilter
             avd
         }
     }
 
     private fun initializeMenuIcons() {
-        menuIcons = Array(menuItems.size) {
+        menuIcons = Array(cbnMenuItems.size) {
             val drawable =
-                ResourcesCompat.getDrawable(resources, menuItems[it].icon, context.theme)!!
+                ResourcesCompat.getDrawable(resources, cbnMenuItems[it].icon, context.theme)!!
             drawable.toBitmap()
         }
     }
 
-    fun getMenuItems(): Array<MenuItem> {
-        return menuItems
+    fun getMenuItems(): Array<CbnMenuItem> {
+        return cbnMenuItems
     }
 
     // set the click listener for menu items
-    fun setOnMenuItemClickListener(menuItemClickListener: (MenuItem, Int) -> Unit) {
+    fun setOnMenuItemClickListener(menuItemClickListener: (CbnMenuItem, Int) -> Unit) {
         this.menuItemClickListener = menuItemClickListener
     }
 
     // function to setup with navigation controller just like in BottomNavigationView
     fun setupWithNavController(navController: NavController) {
+        // check for menu initialization
+        if (!isMenuInitialized) {
+            throw RuntimeException("initialize menu by calling setMenuItems() before setting up with NavController")
+        }
+        // the start destination and active index
+        if (navController.graph.startDestination != cbnMenuItems[selectedIndex].destinationId) {
+            throw RuntimeException("startDestination in graph doesn't match the activeIndex set in setMenuItems()")
+        }
+
         // initialize the menu
         setOnMenuItemClickListener { item, _ ->
             navigateToDestination(navController, item)
         }
         // setup destination change listener to properly sync the back button press
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            for (i in menuItems.indices) {
-                if (matchDestination(destination, menuItems[i].destinationId)) {
+            for (i in cbnMenuItems.indices) {
+                if (matchDestination(destination, cbnMenuItems[i].destinationId)) {
                     onMenuItemClick(i)
                 }
             }
@@ -313,8 +326,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     // source code referenced from the actual JetPack Navigation Component
     // refer to the original source code
-    private fun navigateToDestination(navController: NavController, item: MenuItem) {
-        if (item.destinationId == -1) {
+    private fun navigateToDestination(navController: NavController, itemCbn: CbnMenuItem) {
+        if (itemCbn.destinationId == -1) {
             throw RuntimeException("please set a valid id, unable the navigation!")
         }
         val builder = NavOptions.Builder()
@@ -327,7 +340,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         builder.setPopUpTo(findStartDestination(navController.graph).id, false)
         val options = builder.build()
         try {
-            navController.navigate(item.destinationId, null, options)
+            navController.navigate(itemCbn.destinationId, null, options)
         } catch (e: IllegalArgumentException) {
             Log.w(TAG, "unable to navigate!", e)
         }
@@ -355,14 +368,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return startDestination
     }
 
-    private fun initializeBottomItems(menuItems: Array<MenuItem>, activeItem: Int) {
+    private fun initializeBottomItems(cbnMenuItems: Array<CbnMenuItem>, activeItem: Int) {
         // clear layout
         removeAllViews()
         val bottomNavLayout = LinearLayout(context)
         // get the ripple from the theme
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.selectableItemBackground, typedValue, true)
-        menuItems.forEachIndexed { index, item ->
+        cbnMenuItems.forEachIndexed { index, item ->
             val menuItem = bottomNavItemViews[index]
             menuItem.imageTintList = ColorStateList.valueOf(unSelectedColor)
             menuItem.setMenuItem(item)
@@ -419,7 +432,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         isAnimating = true
         animateItemSelection(newOffsetX, menuCellWidth, index)
         // notify the listener
-        menuItemClickListener?.invoke(menuItems[index], index)
+        menuItemClickListener?.invoke(cbnMenuItems[index], index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {

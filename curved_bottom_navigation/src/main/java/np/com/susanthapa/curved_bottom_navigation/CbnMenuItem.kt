@@ -7,7 +7,7 @@ import androidx.annotation.NavigationRes
 /**
  * Created by suson on 10/1/20
  */
-data class MenuItem(
+data class CbnMenuItem(
     @DrawableRes
     val icon: Int,
     @DrawableRes
