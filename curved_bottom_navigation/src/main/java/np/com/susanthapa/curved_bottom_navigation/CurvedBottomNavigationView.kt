@@ -156,6 +156,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // listener for the menuItemClick
     private var menuItemClickListener: ((MenuItem, Int) -> Unit)? = null
 
+    // control the rendering of the menu when the menu is empty
+    private var isMenuInitialized = false
+
     // callback to synchronize the animation of AVD and this canvas when software canvas is used
     private val avdUpdateCallback = object: Drawable.Callback {
         override fun invalidateDrawable(who: Drawable) {
@@ -237,7 +240,15 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun setMenuItems(menuItems: Array<MenuItem>, activeIndex: Int = 0) {
+        if (menuItems.isEmpty()) {
+            isMenuInitialized = false
+            return
+        }
         this.menuItems = menuItems
+        // initialize the index
+        fabIconIndex = activeIndex
+        selectedIndex = activeIndex
+        isMenuInitialized = true
         bottomNavItemViews = Array(menuItems.size) {
             BottomNavItemView(context)
         }
@@ -246,7 +257,17 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // set the initial callback to the active item, so that we can animate AVD during app startup
         menuAVDs[activeIndex].callback = avdUpdateCallback
         initializeBottomItems(menuItems, activeIndex)
+        initializeCurve(activeIndex)
     }
+
+    private fun initializeCurve(index: Int) {
+        // compute the cell width and centerX for the fab
+        menuCellWidth = width / menuItems.size
+        val offsetX = menuCellWidth * index
+        centerX = offsetX + menuCellWidth / 2f
+        computeCurve(offsetX, menuCellWidth)
+    }
+
 
     private fun initializeMenuAVDs() {
         val activeColorFilter = PorterDuffColorFilter(selectedColor, PorterDuff.Mode.SRC_IN)
@@ -660,16 +681,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        // compute the cell width and centerX for the fab
-        menuCellWidth = w / menuItems.size
-        centerX = menuCellWidth * selectedIndex + menuCellWidth / 2f
-        computeCurve(0, menuCellWidth)
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (!isMenuInitialized) {
+            return
+        }
         canvas.drawCircle(centerX, curCenterY, fabSize / 2f, fabPaint)
         // draw the AVD within the circle
         menuAVDs[fabIconIndex].setBounds(
