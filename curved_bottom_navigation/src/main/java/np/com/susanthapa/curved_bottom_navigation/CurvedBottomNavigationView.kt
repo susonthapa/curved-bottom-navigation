@@ -405,7 +405,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         addView(bottomNavLayout, bottomNavLayoutParams)
     }
 
-    private fun onMenuItemClick(index: Int) {
+    fun onMenuItemClick(index: Int) {
         if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
             return
