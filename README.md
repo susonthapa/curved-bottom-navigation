@@ -110,4 +110,4 @@ app:cbn_bg | Background color of the Curved Bottom Navigation | `#FFFFFF`
 The height of the `CurvedBottomNavigationView` is fixed to `56dp` and the size of the `FloatingActionButton` is also fixed to `56dp` for now.
 Also the `AnimatedVectorDrawable` animation duration is taken as it is defined in the xml file.
 
-Here is the link to my blog post that explains this library in some detail. 
+Here is the [link](https://medium.com/@susuthapa19961227/curved-cut-out-bottom-navigation-with-animation-in-android-c630c867958c) to my blog post that explains this library in some detail. 
