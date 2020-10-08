@@ -21,7 +21,7 @@ allprojects {
 Update your **module** level `build.gradle` file and add the following dependency. Please check the project releases for latest versions.
 ```groovy
 dependencies {
-  implementation 'np.com.susanthapa.curved_bottom_navigation:curved_bottom_navigation:0.6.2'
+  implementation 'np.com.susanthapa.curved_bottom_navigation:curved_bottom_navigation:0.6.3'
 }
 ```
 
