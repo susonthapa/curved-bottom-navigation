@@ -406,16 +406,16 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun onMenuItemClick(index: Int) {
-		var shouldAnimate = true;
+        var shouldAnimate = true;
         if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
-		    shouldAnimate = false;
+            shouldAnimate = false;
         }
         if (isAnimating) {
             Log.i(TAG, "animation is in progress, skipping navigation")
             shouldAnimate = false;
         }
-		if (shouldAnimate) {
+        if (shouldAnimate) {
             fabIconIndex = selectedIndex
             menuAVDs[index].stop()
             prevSelectedIndex = selectedIndex
@@ -431,7 +431,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             val newOffsetX = menuCellWidth * index
             isAnimating = true
             animateItemSelection(newOffsetX, menuCellWidth, index)
-		}
+        }
         // notify the listener
         menuItemClickListener?.invoke(cbnMenuItems[index], index)
     }
