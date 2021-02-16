@@ -406,34 +406,32 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun onMenuItemClick(index: Int) {
-        var shouldAnimate = true;
+        // notify the listener
+        menuItemClickListener?.invoke(cbnMenuItems[index], index)
         if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
-            shouldAnimate = false;
+            return
         }
         if (isAnimating) {
             Log.i(TAG, "animation is in progress, skipping navigation")
-            shouldAnimate = false;
+            return
         }
-        if (shouldAnimate) {
-            fabIconIndex = selectedIndex
-            menuAVDs[index].stop()
-            prevSelectedIndex = selectedIndex
-            selectedIndex = index
-            // make all item except current item invisible
-            bottomNavItemViews.forEachIndexed { i, imageView ->
-                if (prevSelectedIndex == i) {
-                    // show the previous selected view with alpha 0
-                    imageView.visibility = VISIBLE
-                    imageView.alpha = 0f
-                }
+
+        fabIconIndex = selectedIndex
+        menuAVDs[index].stop()
+        prevSelectedIndex = selectedIndex
+        selectedIndex = index
+        // make all item except current item invisible
+        bottomNavItemViews.forEachIndexed { i, imageView ->
+            if (prevSelectedIndex == i) {
+                // show the previous selected view with alpha 0
+                imageView.visibility = VISIBLE
+                imageView.alpha = 0f
             }
-            val newOffsetX = menuCellWidth * index
-            isAnimating = true
-            animateItemSelection(newOffsetX, menuCellWidth, index)
         }
-        // notify the listener
-        menuItemClickListener?.invoke(cbnMenuItems[index], index)
+        val newOffsetX = menuCellWidth * index
+        isAnimating = true
+        animateItemSelection(newOffsetX, menuCellWidth, index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {
