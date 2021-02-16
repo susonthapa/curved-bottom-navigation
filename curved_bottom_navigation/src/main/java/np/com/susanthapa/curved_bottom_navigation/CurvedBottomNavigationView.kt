@@ -406,30 +406,32 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun onMenuItemClick(index: Int) {
+		var shouldAnimate = true;
         if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
-            return
+			shouldAnimate = false;
         }
         if (isAnimating) {
             Log.i(TAG, "animation is in progress, skipping navigation")
-            return
+			shouldAnimate = false;
         }
-
-        fabIconIndex = selectedIndex
-        menuAVDs[index].stop()
-        prevSelectedIndex = selectedIndex
-        selectedIndex = index
-        // make all item except current item invisible
-        bottomNavItemViews.forEachIndexed { i, imageView ->
-            if (prevSelectedIndex == i) {
-                // show the previous selected view with alpha 0
-                imageView.visibility = VISIBLE
-                imageView.alpha = 0f
-            }
-        }
-        val newOffsetX = menuCellWidth * index
-        isAnimating = true
-        animateItemSelection(newOffsetX, menuCellWidth, index)
+		if (shouldAnimate) {
+			fabIconIndex = selectedIndex
+			menuAVDs[index].stop()
+			prevSelectedIndex = selectedIndex
+			selectedIndex = index
+			// make all item except current item invisible
+			bottomNavItemViews.forEachIndexed { i, imageView ->
+				if (prevSelectedIndex == i) {
+					// show the previous selected view with alpha 0
+					imageView.visibility = VISIBLE
+					imageView.alpha = 0f
+				}
+			}
+			val newOffsetX = menuCellWidth * index
+			isAnimating = true
+			animateItemSelection(newOffsetX, menuCellWidth, index)
+		}
         // notify the listener
         menuItemClickListener?.invoke(cbnMenuItems[index], index)
     }
