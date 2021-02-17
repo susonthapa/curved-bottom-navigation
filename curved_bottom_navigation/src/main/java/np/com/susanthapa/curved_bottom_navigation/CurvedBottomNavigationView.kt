@@ -406,8 +406,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     fun onMenuItemClick(index: Int) {
-        // notify the listener
-        menuItemClickListener?.invoke(cbnMenuItems[index], index)
         if (selectedIndex == index) {
             Log.i(TAG, "same icon multiple clicked, skipping animation!")
             return
@@ -432,6 +430,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val newOffsetX = menuCellWidth * index
         isAnimating = true
         animateItemSelection(newOffsetX, menuCellWidth, index)
+        // notify the listener
+        menuItemClickListener?.invoke(cbnMenuItems[index], index)
     }
 
     private fun animateItemSelection(offset: Int, width: Int, index: Int) {
