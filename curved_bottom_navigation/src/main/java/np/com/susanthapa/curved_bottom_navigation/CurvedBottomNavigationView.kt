@@ -2,7 +2,6 @@ package np.com.susanthapa.curved_bottom_navigation
 
 import android.animation.*
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -288,7 +287,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         initializeMenuIcons()
         initializeMenuAVDs()
         initializeCurve(activeIndex)
-        initializeBottomItems(cbnMenuItems, activeIndex)
+        initializeBottomItems(activeIndex)
         isMenuInitialized = true
 
         // setup the initial AVD
@@ -422,7 +421,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return startDestination
     }
 
-    private fun initializeBottomItems(cbnMenuItems: Array<CbnMenuItem>, activeItem: Int) {
+    private fun initializeBottomItems(activeItem: Int) {
         // clear layout
         removeAllViews()
         val bottomNavLayout = LinearLayout(context)
