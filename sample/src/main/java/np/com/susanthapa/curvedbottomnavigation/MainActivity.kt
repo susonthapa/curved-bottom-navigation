@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_settings
             )
         )
+
         binding.navView.setMenuItems(menuItems, 2)
         binding.navView.setupWithNavController(navController)
     }

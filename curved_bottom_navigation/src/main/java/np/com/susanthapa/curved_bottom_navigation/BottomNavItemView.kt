@@ -2,6 +2,7 @@ package np.com.susanthapa.curved_bottom_navigation
 
 import android.animation.*
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.animation.DecelerateInterpolator
@@ -27,8 +28,8 @@ class BottomNavItemView @JvmOverloads constructor(
     private var isAnimating = false
 
 
-    fun setMenuItem(itemCbn: CbnMenuItem) {
-        setImageResource(itemCbn.icon)
+    fun setMenuIcon(icon: Drawable) {
+        setImageDrawable(icon)
         scaleType = ScaleType.CENTER
     }
 
