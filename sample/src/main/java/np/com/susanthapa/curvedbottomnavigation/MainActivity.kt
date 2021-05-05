@@ -17,6 +17,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val activeIndex = savedInstanceState?.getInt("activeIndex") ?: 2
+
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -54,7 +56,13 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        binding.navView.setMenuItems(menuItems, 2)
+        binding.navView.setMenuItems(menuItems, activeIndex)
         binding.navView.setupWithNavController(navController)
+        binding.navView.animDuration = 3000
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("activeIndex", binding.navView.getSelectedIndex())
+        super.onSaveInstanceState(outState)
     }
 }

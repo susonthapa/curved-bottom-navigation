@@ -272,6 +272,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
+    fun getSelectedIndex(): Int {
+        return selectedIndex
+    }
+
     fun setMenuItems(cbnMenuItems: Array<CbnMenuItem>, activeIndex: Int = 0) {
         if (cbnMenuItems.isEmpty()) {
             isMenuInitialized = false
@@ -357,10 +361,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // check for menu initialization
         if (!isMenuInitialized) {
             throw RuntimeException("initialize menu by calling setMenuItems() before setting up with NavController")
-        }
-        // the start destination and active index
-        if (navController.graph.startDestination != cbnMenuItems[selectedIndex].destinationId) {
-            throw RuntimeException("startDestination in graph doesn't match the activeIndex set in setMenuItems()")
         }
 
         // initialize the menu
