@@ -43,7 +43,11 @@ class MainActivity : AppCompatActivity() {
                 R.drawable.avd_dashboard,
                 R.id.navigation_dashboard
             ),
-            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
+            CbnMenuItem(
+                R.drawable.ic_home,
+                R.drawable.avd_home,
+                R.id.navigation_home
+            ),
             CbnMenuItem(
                 R.drawable.ic_profile,
                 R.drawable.avd_profile,
@@ -58,7 +62,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.navView.setMenuItems(menuItems, activeIndex)
         binding.navView.setupWithNavController(navController)
-        binding.navView.animDuration = 3000
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

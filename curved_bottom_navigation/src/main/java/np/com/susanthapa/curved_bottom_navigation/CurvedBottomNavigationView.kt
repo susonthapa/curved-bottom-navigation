@@ -10,6 +10,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationSet
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.IdRes
@@ -191,6 +192,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // control the rendering of the menu when the menu is empty
     private var isMenuInitialized = false
 
+    private var animatorSet = AnimatorSet()
+
     // callback to synchronize the animation of AVD and this canvas when software canvas is used
     private val avdUpdateCallback = object : Drawable.Callback {
         override fun invalidateDrawable(who: Drawable) {
@@ -274,6 +277,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     fun getSelectedIndex(): Int {
         return selectedIndex
+    }
+
+    fun isAnimating(): Boolean {
+        return isAnimating
     }
 
     fun setMenuItems(cbnMenuItems: Array<CbnMenuItem>, activeIndex: Int = 0) {
@@ -371,6 +378,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         navController.addOnDestinationChangedListener { _, destination, _ ->
             for (i in cbnMenuItems.indices) {
                 if (matchDestination(destination, cbnMenuItems[i].destinationId)) {
+                    if (selectedIndex != i && isAnimating) {
+                        // this is triggered internally, even if the animations looks kinda funky (if duration is long)
+                        // but we will sync with the destination
+                        animatorSet.cancel()
+                        isAnimating = false
+                    }
                     onMenuItemClick(i)
                 }
             }
@@ -515,10 +528,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         centerYAnimatorShow.startDelay = halfAnimDuration
         centerYAnimatorShow.duration = halfAnimDuration
 
-        val set = AnimatorSet()
-        set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
-        set.interpolator = FastOutSlowInInterpolator()
-        set.start()
+        animatorSet = AnimatorSet()
+        animatorSet.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
+        animatorSet.interpolator = FastOutSlowInInterpolator()
+        animatorSet.start()
     }
 
     private fun getBezierCurveAnimation(
