@@ -17,6 +17,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val activeIndex = savedInstanceState?.getInt("activeIndex") ?: 2
+
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -41,7 +43,11 @@ class MainActivity : AppCompatActivity() {
                 R.drawable.avd_dashboard,
                 R.id.navigation_dashboard
             ),
-            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home, R.id.navigation_home),
+            CbnMenuItem(
+                R.drawable.ic_home,
+                R.drawable.avd_home,
+                R.id.navigation_home
+            ),
             CbnMenuItem(
                 R.drawable.ic_profile,
                 R.drawable.avd_profile,
@@ -53,7 +59,13 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_settings
             )
         )
-        binding.navView.setMenuItems(menuItems, 2)
+
+        binding.navView.setMenuItems(menuItems, activeIndex)
         binding.navView.setupWithNavController(navController)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("activeIndex", binding.navView.getSelectedIndex())
+        super.onSaveInstanceState(outState)
     }
 }

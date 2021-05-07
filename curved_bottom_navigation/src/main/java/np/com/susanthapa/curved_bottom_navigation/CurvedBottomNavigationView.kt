@@ -2,7 +2,6 @@ package np.com.susanthapa.curved_bottom_navigation
 
 import android.animation.*
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -11,11 +10,12 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationSet
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.IdRes
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.doOnLayout
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.NavController
@@ -60,24 +60,56 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     var selectedColor = Color.parseColor("#000000")
         set(value) {
             field = value
-            initializeMenuAVDs()
-            invalidate()
+            if (isMenuInitialized) {
+                updateMenuAVDsTint()
+                invalidate()
+            }
         }
     var unSelectedColor = Color.parseColor("#8F8F8F")
         set(value) {
             field = value
-            initializeMenuIcons()
-            invalidate()
+            if (isMenuInitialized) {
+                updateMenuIconsTint()
+                invalidate()
+            }
         }
     private val shadowColor: Int = Color.parseColor("#75000000")
 
     var animDuration: Long = 300L
 
     var fabElevation = 4.toPx(context).toFloat()
+        set(value) {
+            field = value
+            fabPaint.setShadowLayer(fabElevation, 0f, 6f, shadowColor)
+            if (isMenuInitialized) {
+                invalidate()
+            }
+        }
     var navElevation = 6.toPx(context).toFloat()
+        set(value) {
+            field = value
+            navPaint.setShadowLayer(navElevation, 0f, 6f, shadowColor)
+            if (isMenuInitialized) {
+                invalidate()
+            }
+        }
 
     var fabBackgroundColor = Color.WHITE
+        set(value) {
+            field = value
+            fabPaint.color = value
+            if (isMenuInitialized) {
+                invalidate()
+            }
+        }
     var navBackgroundColor = Color.WHITE
+        set(value) {
+            field = value
+            navPaint.color = value
+            if (isMenuInitialized) {
+                invalidate()
+            }
+        }
 
     // path to represent the curved background
     private val path: Path = Path()
@@ -92,7 +124,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // initialize empty array so that we don't have to check if it's initialized or not
     private var cbnMenuItems: Array<CbnMenuItem> = arrayOf()
     private lateinit var bottomNavItemViews: Array<BottomNavItemView>
-    private lateinit var menuIcons: Array<Bitmap>
+    private lateinit var menuIcons: Array<Drawable>
     private lateinit var menuAVDs: Array<AnimatedVectorDrawableCompat>
 
     // width of the cell, computed in onSizeChanged()
@@ -160,8 +192,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     // control the rendering of the menu when the menu is empty
     private var isMenuInitialized = false
 
+    private var animatorSet = AnimatorSet()
+
     // callback to synchronize the animation of AVD and this canvas when software canvas is used
-    private val avdUpdateCallback = object: Drawable.Callback {
+    private val avdUpdateCallback = object : Drawable.Callback {
         override fun invalidateDrawable(who: Drawable) {
             this@CurvedBottomNavigationView.invalidate()
         }
@@ -178,6 +212,29 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     init {
         // remove the bg as will do our own drawing
         setBackgroundColor(Color.TRANSPARENT)
+        // initialize the paint here with defaults, we will update paint colors latter from property setters
+        navPaint = Paint().apply {
+            style = Paint.Style.FILL_AND_STROKE
+            color = navBackgroundColor
+            setShadowLayer(
+                navElevation,
+                0f,
+                6f,
+                shadowColor
+            )
+        }
+
+        fabPaint = Paint().apply {
+            style = Paint.Style.FILL_AND_STROKE
+            color = fabBackgroundColor
+            setShadowLayer(
+                fabElevation,
+                0f,
+                6f,
+                shadowColor
+            )
+        }
+
         // read the attributes values
         context.theme.obtainStyledAttributes(attrs, R.styleable.CurvedBottomNavigationView, 0, 0)
             .apply {
@@ -213,31 +270,17 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 }
             }
 
-        navPaint = Paint().apply {
-            style = Paint.Style.FILL_AND_STROKE
-            color = navBackgroundColor
-            setShadowLayer(
-                navElevation,
-                0f,
-                6f,
-                shadowColor
-            )
-        }
-
-        fabPaint = Paint().apply {
-            style = Paint.Style.FILL_AND_STROKE
-            color = fabBackgroundColor
-            setShadowLayer(
-                fabElevation,
-                0f,
-                6f,
-                shadowColor
-            )
-        }
-
         // use software rendering instead of hardware acceleration as hardware acceleration doesn't
         // support shadowLayer below API 28
         setLayerType(LAYER_TYPE_SOFTWARE, null)
+    }
+
+    fun getSelectedIndex(): Int {
+        return selectedIndex
+    }
+
+    fun isAnimating(): Boolean {
+        return isAnimating
     }
 
     fun setMenuItems(cbnMenuItems: Array<CbnMenuItem>, activeIndex: Int = 0) {
@@ -249,14 +292,14 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // initialize the index
         fabIconIndex = activeIndex
         selectedIndex = activeIndex
-        isMenuInitialized = true
         bottomNavItemViews = Array(cbnMenuItems.size) {
             BottomNavItemView(context)
         }
         initializeMenuIcons()
         initializeMenuAVDs()
         initializeCurve(activeIndex)
-        initializeBottomItems(cbnMenuItems, activeIndex)
+        initializeBottomItems(activeIndex)
+        isMenuInitialized = true
 
         // setup the initial AVD
         setupInitialAVD(activeIndex)
@@ -293,7 +336,21 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         menuIcons = Array(cbnMenuItems.size) {
             val drawable =
                 ResourcesCompat.getDrawable(resources, cbnMenuItems[it].icon, context.theme)!!
-            drawable.toBitmap()
+            DrawableCompat.setTint(drawable, unSelectedColor)
+            drawable
+        }
+    }
+
+    private fun updateMenuAVDsTint() {
+        val activeColorFilter = PorterDuffColorFilter(selectedColor, PorterDuff.Mode.SRC_IN)
+        menuAVDs.forEach {
+            it.colorFilter = activeColorFilter
+        }
+    }
+
+    private fun updateMenuIconsTint() {
+        menuIcons.forEach {
+            DrawableCompat.setTint(it, unSelectedColor)
         }
     }
 
@@ -312,10 +369,6 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         if (!isMenuInitialized) {
             throw RuntimeException("initialize menu by calling setMenuItems() before setting up with NavController")
         }
-        // the start destination and active index
-        if (navController.graph.startDestination != cbnMenuItems[selectedIndex].destinationId) {
-            throw RuntimeException("startDestination in graph doesn't match the activeIndex set in setMenuItems()")
-        }
 
         // initialize the menu
         setOnMenuItemClickListener { item, _ ->
@@ -325,6 +378,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         navController.addOnDestinationChangedListener { _, destination, _ ->
             for (i in cbnMenuItems.indices) {
                 if (matchDestination(destination, cbnMenuItems[i].destinationId)) {
+                    if (selectedIndex != i && isAnimating) {
+                        // this is triggered internally, even if the animations looks kinda funky (if duration is long)
+                        // but we will sync with the destination
+                        animatorSet.cancel()
+                        isAnimating = false
+                    }
                     onMenuItemClick(i)
                 }
             }
@@ -375,17 +434,16 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return startDestination
     }
 
-    private fun initializeBottomItems(cbnMenuItems: Array<CbnMenuItem>, activeItem: Int) {
+    private fun initializeBottomItems(activeItem: Int) {
         // clear layout
         removeAllViews()
         val bottomNavLayout = LinearLayout(context)
         // get the ripple from the theme
         val typedValue = TypedValue()
         context.theme.resolveAttribute(R.attr.selectableItemBackground, typedValue, true)
-        cbnMenuItems.forEachIndexed { index, item ->
+        menuIcons.forEachIndexed { index, icon ->
             val menuItem = bottomNavItemViews[index]
-            menuItem.imageTintList = ColorStateList.valueOf(unSelectedColor)
-            menuItem.setMenuItem(item)
+            menuItem.setMenuIcon(icon)
             menuItem.setOnClickListener {
                 onMenuItemClick(index)
             }
@@ -470,10 +528,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         centerYAnimatorShow.startDelay = halfAnimDuration
         centerYAnimatorShow.duration = halfAnimDuration
 
-        val set = AnimatorSet()
-        set.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
-        set.interpolator = FastOutSlowInInterpolator()
-        set.start()
+        animatorSet = AnimatorSet()
+        animatorSet.playTogether(centerYAnimatorHide, offsetAnimator, centerYAnimatorShow)
+        animatorSet.interpolator = FastOutSlowInInterpolator()
+        animatorSet.start()
     }
 
     private fun getBezierCurveAnimation(
@@ -611,7 +669,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 curCenterY = newCenterY
                 invalidate()
             }
-            addListener(object: AnimatorListenerAdapter() {
+            addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
                     fabIconIndex = selectedIndex
                 }
@@ -689,7 +747,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // our minimum height is defined in R.dimen.cbn_layout_height
         // currently we don't support custom height and use defaults suggested by Material Design Specs
-        val h: Int = paddingTop + paddingBottom + resources.getDimensionPixelSize(R.dimen.cbn_layout_height)
+        val h: Int =
+            paddingTop + paddingBottom + resources.getDimensionPixelSize(R.dimen.cbn_layout_height)
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
     }
 
@@ -701,10 +760,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         canvas.drawCircle(centerX, curCenterY, fabSize / 2f, fabPaint)
         // draw the AVD within the circle
         menuAVDs[fabIconIndex].setBounds(
-            (centerX - menuIcons[fabIconIndex].width / 2).toInt(),
-            (curCenterY - menuIcons[fabIconIndex].height / 2).toInt(),
-            (centerX + menuIcons[fabIconIndex].width / 2).toInt(),
-            (curCenterY + menuIcons[fabIconIndex].height / 2).toInt()
+            (centerX - menuIcons[fabIconIndex].intrinsicWidth / 2).toInt(),
+            (curCenterY - menuIcons[fabIconIndex].intrinsicHeight / 2).toInt(),
+            (centerX + menuIcons[fabIconIndex].intrinsicWidth / 2).toInt(),
+            (curCenterY + menuIcons[fabIconIndex].intrinsicHeight / 2).toInt()
         )
         menuAVDs[fabIconIndex].draw(canvas)
         // draw the path last so that we can clip the FAB and AVD
