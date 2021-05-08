@@ -2,27 +2,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 ext {
-    bintrayRepo = 'curved-bottom-navigation' // Repo name in bintray dashboard
-    bintrayName = 'np.com.susanthapa.curved_bottom_navigation' // package name of the bintray repo
+    PUBLISH_GROUP_ID = 'np.com.susanthapa'
+    PUBLISH_VERSION = '0.6.5'
+    PUBLISH_ARTIFACT_ID = 'curved_bottom_navigation'
 
-    publishedGroupId = 'np.com.susanthapa.curved_bottom_navigation'   // this is the ID we want to see in implementation line
-    libraryName = 'curved_bottom_navigation'     // this is the module name of library
-    artifact = 'curved_bottom_navigation'        // this is the artifact we want to see in implementation line
-
-    libraryDescription = 'Curved (cut out) bottom navigation implementation in android with animation and AnimatedVectorDrawable support.' // description of library
-
-    siteUrl = 'https://github.com/susonthapa/curved-bottom-navigation'    // git repo url
-    gitUrl = 'https://github.com/susonthapa/curved-bottom-navigation.git' // git repo vcs url
-
-    libraryVersion = '0.6.3'      // library version
-
-    developerId = 'susonthapa'                // This is your bintray username
-    developerName = 'Susan Thapa'              // Developer's name
-    developerEmail = 'susanthapa202@gmail.com'                // Developer's email
-
-    licenseName = 'The Apache Software License, Version 2.0'  // for example, The Apache Software License, Version 2.0
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'   // for example, http://www.apache.org/licenses/LICENSE-2.0.txt
-    allLicenses = ["Apache-2.0"]    // array of licenses, for example, ["Apache-2.0"]
 }
 
 android {
@@ -72,4 +55,4 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
 
-apply from: 'publish.gradle'
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
