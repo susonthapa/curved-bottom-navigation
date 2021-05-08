@@ -5,23 +5,10 @@ A simple curved bottom navigation for Android with AnimatedVectorDrawable and Je
 ![](/resources/cbn_demo.gif)
 
 ## Setup
-Update your **project** level `build.gradle` file and add the maven repoistory like this.
-```groovy
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        maven {
-            url  "https://dl.bintray.com/susonthapa/curved-bottom-navigation"
-        }
-    }
-}
-```
-
 Update your **module** level `build.gradle` file and add the following dependency. Please check the project releases for latest versions.
 ```groovy
 dependencies {
-  implementation 'np.com.susanthapa.curved_bottom_navigation:curved_bottom_navigation:0.6.3'
+  implementation 'np.com.susanthapa.curved_bottom_navigation:curved_bottom_navigation:latest_version'
 }
 ```
 
@@ -94,6 +81,9 @@ If you need to manually set the active item you can call the `onMenuItemClick()`
 ```kotlin
 binding.navView.onMenuItemClick(2)
 ```
+
+### Handling configuration changes
+Due to animations, you need to manually handle the configuration changes. You can refer to the sample app for simple implementation.
 
 ### XML Attribues
 Attribute | Description | Default Value
