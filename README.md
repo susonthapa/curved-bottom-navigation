@@ -74,7 +74,9 @@ binding.navView.setOnMenuItemClickListener { cbnMenuItem, index ->
 ```
 
 ### Handling Navigaiton with Jetpack Navigation
-If you are like me and :heart: Jetpack then there is a method called `setupWithNavController()` that accepts `NavController` and will handle the navigaiton for you. Just don't forget to pass the `id` of the destination when you are creating `CbnMenuItem`. 
+If you are like me and :heart: Jetpack then there is a method called `setupWithNavController()` that accepts `NavController` and will handle the navigaiton for you. Just don't forget to pass the `id` of the destination when you are creating `CbnMenuItem`.
+
+**Note:** Make sure the home destination in your navigation graph corresponds to the `activeIndex` that you have passed to `setMenuItems()`.
 ```kotlin
 binding.navView.setupWithNavController(navController)
 ```
