@@ -1,6 +1,9 @@
 package np.com.susanthapa.curvedbottomnavigation
 
+import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -14,6 +17,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.WHITE, Color.BLACK)
+        )
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -36,27 +45,32 @@ class MainActivity : AppCompatActivity() {
             CbnMenuItem(
                 R.drawable.ic_notification,
                 R.drawable.avd_notification,
-                R.id.navigation_notifications
+                R.id.navigation_notifications,
+                "Notifications"
             ),
             CbnMenuItem(
                 R.drawable.ic_dashboard,
                 R.drawable.avd_dashboard,
-                R.id.navigation_dashboard
+                R.id.navigation_dashboard,
+                "Dashboard"
             ),
             CbnMenuItem(
                 R.drawable.ic_home,
                 R.drawable.avd_home,
-                R.id.navigation_home
+                R.id.navigation_home,
+                "Home"
             ),
             CbnMenuItem(
                 R.drawable.ic_profile,
                 R.drawable.avd_profile,
-                R.id.navigation_profile
+                R.id.navigation_profile,
+                "Profile"
             ),
             CbnMenuItem(
                 R.drawable.ic_settings,
                 R.drawable.avd_settings,
-                R.id.navigation_settings
+                R.id.navigation_settings,
+                "Settings"
             )
         )
 

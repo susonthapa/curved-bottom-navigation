@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
+    tools:context=".MainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -20,12 +22,16 @@
 
     <np.com.susanthapa.curved_bottom_navigation.CurvedBottomNavigationView
         android:id="@+id/nav_view"
+        android:paddingBottom="?android:attr/actionBarSize"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
+        app:cbn_bg="@color/white"
+        app:cbn_dotSize="@dimen/_4sdp"
+        app:cbn_textColor="@color/gray"
+        app:cbn_dotColor ="@color/green"
+        app:cbn_textSize ="@dimen/_8sdp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" /> />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

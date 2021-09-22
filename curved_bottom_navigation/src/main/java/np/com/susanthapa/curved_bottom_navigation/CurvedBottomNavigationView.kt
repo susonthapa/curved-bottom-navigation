@@ -10,7 +10,6 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationSet
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.IdRes
@@ -43,6 +42,13 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
 
+    private var dotRadius : Float
+    private var textSizeInSdp : Float
+
+
+    private val dotPaint : Paint
+    private val textPaint : Paint
+
     // first bezier curve
     private val firstCurveStart = PointF()
     private val firstCurveEnd = PointF()
@@ -55,9 +61,47 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private val secondCurveControlPoint1 = PointF()
     private val secondCurveControlPoint2 = PointF()
 
+    private var textColor = Color.WHITE
+        set(value) {
+            field = value
+            textPaint.color = value
+            if(isMenuInitialized){
+                invalidate()
+            }
+        }
 
-    // default values for custom attributes
-    var selectedColor = Color.parseColor("#000000")
+
+    private var dotSize = context.resources.getDimension(com.intuit.sdp.R.dimen._5sdp)
+        set(value) {
+            field = value
+            dotRadius = dotSize
+            if(isMenuInitialized){
+                invalidate()
+            }
+        }
+
+
+    private var fontTextSize =  context.resources.getDimension(com.intuit.sdp.R.dimen._10sdp)
+        set(value) {
+            field = value
+            textPaint.textSize = value
+            if(isMenuInitialized){
+                invalidate()
+            }
+        }
+
+
+    private var dotColor = Color.WHITE
+        set(value) {
+            field = value
+            dotPaint.color = value
+            if(isMenuInitialized){
+                invalidate()
+            }
+        }
+
+
+    private var selectedColor = Color.parseColor("#000000")
         set(value) {
             field = value
             if (isMenuInitialized) {
@@ -65,7 +109,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
         }
-    var unSelectedColor = Color.parseColor("#8F8F8F")
+
+    private var unSelectedColor = Color.parseColor("#8F8F8F")
         set(value) {
             field = value
             if (isMenuInitialized) {
@@ -73,11 +118,12 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
         }
+
     private val shadowColor: Int = Color.parseColor("#75000000")
 
-    var animDuration: Long = 300L
+    private var animDuration: Long = 300L
 
-    var fabElevation = 4.toPx(context).toFloat()
+    private var fabElevation = 4.toPx(context).toFloat()
         set(value) {
             field = value
             fabPaint.setShadowLayer(fabElevation, 0f, 6f, shadowColor)
@@ -85,6 +131,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
         }
+
     var navElevation = 6.toPx(context).toFloat()
         set(value) {
             field = value
@@ -102,6 +149,8 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
         }
+
+
     var navBackgroundColor = Color.WHITE
         set(value) {
             field = value
@@ -146,6 +195,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
 
     // total height of this layout
     private val layoutHeight = resources.getDimension(R.dimen.cbn_layout_height)
+
+    fun getTotalHeight(): Float {
+        return layoutHeight
+    }
 
     // top offset for the BottomNavigation
     private val bottomNavOffsetY =
@@ -212,6 +265,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     init {
         // remove the bg as will do our own drawing
         setBackgroundColor(Color.TRANSPARENT)
+
+        dotRadius = dotSize
+        textSizeInSdp = fontTextSize
+
         // initialize the paint here with defaults, we will update paint colors latter from property setters
         navPaint = Paint().apply {
             style = Paint.Style.FILL_AND_STROKE
@@ -222,6 +279,19 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 6f,
                 shadowColor
             )
+        }
+
+
+        textPaint = Paint().apply {
+            color = textColor
+            textSize = fontTextSize
+        }
+
+
+
+        dotPaint = Paint().apply {
+            color = Color.GREEN
+            style = Paint.Style.FILL
         }
 
         fabPaint = Paint().apply {
@@ -243,20 +313,43 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                         R.styleable.CurvedBottomNavigationView_cbn_selectedColor,
                         selectedColor
                     )
+
+                    textColor = getColor(
+                        R.styleable.CurvedBottomNavigationView_cbn_textColor,
+                        textColor
+                    )
+
+                    dotColor = getColor(
+                        R.styleable.CurvedBottomNavigationView_cbn_dotColor,
+                        dotColor
+                    )
+
+                    dotSize = getDimension(
+                        R.styleable.CurvedBottomNavigationView_cbn_dotSize,
+                        dotSize
+                    )
+
+                    fontTextSize = getDimension(
+                        R.styleable.CurvedBottomNavigationView_cbn_textSize,
+                        fontTextSize
+                    )
+
                     unSelectedColor = getColor(
                         R.styleable.CurvedBottomNavigationView_cbn_unSelectedColor,
                         unSelectedColor
                     )
+
                     animDuration = getInteger(
                         R.styleable.CurvedBottomNavigationView_cbn_animDuration,
                         animDuration.toInt()
                     ).toLong()
+
                     fabBackgroundColor = getColor(
                         R.styleable.CurvedBottomNavigationView_cbn_fabBg,
                         fabBackgroundColor
                     )
-                    navBackgroundColor =
-                        getColor(R.styleable.CurvedBottomNavigationView_cbn_bg, navBackgroundColor)
+
+                    navBackgroundColor = getColor(R.styleable.CurvedBottomNavigationView_cbn_bg, navBackgroundColor)
                     fabElevation = getDimension(
                         R.styleable.CurvedBottomNavigationView_cbn_fabElevation,
                         fabElevation
@@ -398,11 +491,11 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
         val builder = NavOptions.Builder()
             .setLaunchSingleTop(true)
-            .setEnterAnim(R.anim.nav_default_enter_anim)
-            .setExitAnim(R.anim.nav_default_exit_anim)
-            .setPopEnterAnim(R.anim.nav_default_pop_enter_anim)
-            .setPopExitAnim(R.anim.nav_default_pop_exit_anim)
-        // pop to the navigation graph's start  destination
+            .setEnterAnim(androidx.navigation.ui.R.anim.nav_default_pop_enter_anim)
+            .setExitAnim(androidx.navigation.ui.R.anim.nav_default_exit_anim)
+            .setPopEnterAnim(androidx.navigation.ui.R.anim.nav_default_pop_enter_anim)
+            .setPopExitAnim(androidx.navigation.ui.R.anim.nav_default_pop_exit_anim)
+//         pop to the navigation graph's start  destination
         builder.setPopUpTo(findStartDestination(navController.graph).id, false)
         val options = builder.build()
         try {
@@ -428,7 +521,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     private fun findStartDestination(graph: NavGraph): NavDestination {
         var startDestination: NavDestination = graph
         while (startDestination is NavGraph) {
-            startDestination = graph.findNode(graph.startDestination)!!
+            startDestination = graph.findNode(graph.startDestinationId)!!
         }
 
         return startDestination
@@ -440,7 +533,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         val bottomNavLayout = LinearLayout(context)
         // get the ripple from the theme
         val typedValue = TypedValue()
-        context.theme.resolveAttribute(R.attr.selectableItemBackground, typedValue, true)
+        context.theme.resolveAttribute(androidx.appcompat.R.attr.selectableItemBackground, typedValue, true)
         menuIcons.forEachIndexed { index, icon ->
             val menuItem = bottomNavItemViews[index]
             menuItem.setMenuIcon(icon)
@@ -632,7 +725,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         return ValueAnimator().apply {
             setValues(propertyCenterYReverse)
             addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator?) {
+                override fun onAnimationStart(animation: Animator) {
                     // set the callback before starting the animation as the Drawable class
                     // internally uses WeakReference. So settings the callback only during initialization
                     // will result in callback being cleared after certain time. This is a good place
@@ -641,7 +734,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                     menuAVDs[index].start()
                 }
 
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     // disable the clicks in the target view
                     bottomNavItemViews[index].visibility = INVISIBLE
                 }
@@ -652,7 +745,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
             addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     isAnimating = false
                 }
             })
@@ -670,7 +763,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                 invalidate()
             }
             addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     fabIconIndex = selectedIndex
                 }
             })
@@ -753,21 +846,49 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
+
         if (!isMenuInitialized) {
             return
         }
+
+
+
+
+        // Draw circle for FAB (Selected item indicator)
         canvas.drawCircle(centerX, curCenterY, fabSize / 2f, fabPaint)
-        // draw the AVD within the circle
+
+        // Draw AVD (Animated Vector Drawable) within the FAB circle
         menuAVDs[fabIconIndex].setBounds(
             (centerX - menuIcons[fabIconIndex].intrinsicWidth / 2).toInt(),
             (curCenterY - menuIcons[fabIconIndex].intrinsicHeight / 2).toInt(),
             (centerX + menuIcons[fabIconIndex].intrinsicWidth / 2).toInt(),
             (curCenterY + menuIcons[fabIconIndex].intrinsicHeight / 2).toInt()
         )
+
         menuAVDs[fabIconIndex].draw(canvas)
-        // draw the path last so that we can clip the FAB and AVD
+
+        // Draw the path for the bottom navigation
         canvas.drawPath(path, navPaint)
+
+        // Loop through each bottom navigation item
+        for (i in bottomNavItemViews.indices) {
+            val itemCenterX = menuCellWidth * i + (menuCellWidth / 2f)
+            val textY = layoutHeight - 8 // Position the text
+
+            // If the item is selected, show a dot instead of text
+            if (i == selectedIndex) {
+                canvas.drawCircle(itemCenterX, layoutHeight -12, dotRadius, dotPaint)
+            } else {
+                // Draw text for non-selected items
+                textPaint.textAlign = Paint.Align.CENTER
+                canvas.drawText(cbnMenuItems[i].title, itemCenterX, textY, textPaint)
+            }
+        }
     }
 
+    private fun handleItemClick(index: Int) {
+        selectedIndex = index
+        // Trigger a redraw to update the text and dot
+        invalidate()
+    }
 }
