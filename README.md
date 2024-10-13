@@ -105,6 +105,10 @@ app:cbn_fabElevation | Elevation for the Floating Action Button | `4dp`
 app:cbn_elevation | Elevaton for the Curved Bottom Navigation View | `6dp`
 app:cbn_fabBg | Background color of the Floating Action Button | `#FFFFFF`
 app:cbn_bg | Background color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_textColor | text color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_dotColor | active dot color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_textSize | text size of the Curved Bottom Navigation | `@dimen/_10sdp`
+app:cbn_dotSize | active dot size of the Curved Bottom Navigation | `@dimen/_3sdp`
 
 ### Note
 The height of the `CurvedBottomNavigationView` is fixed to `56dp` and the size of the `FloatingActionButton` is also fixed to `56dp` for now.
