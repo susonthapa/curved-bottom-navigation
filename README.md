@@ -5,7 +5,7 @@
 A simple curved bottom navigation for Android with AnimatedVectorDrawable and Jetpack Navigation support.
 
 ## Demo
-![](/resources/cbn_demo.gif)
+<video src="https://github.com/user-attachments/assets/197f486b-1e0a-4dfc-b459-d5471579254b"></video>
 
 ## Setup
 Update your **module** level `build.gradle` file and add the following dependency. Please check the project releases for latest versions.
