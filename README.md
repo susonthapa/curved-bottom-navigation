@@ -109,6 +109,7 @@ app:cbn_textColor | text color of the Curved Bottom Navigation | `#FFFFFF`
 app:cbn_dotColor | active dot color of the Curved Bottom Navigation | `#FFFFFF`
 app:cbn_textSize | text size of the Curved Bottom Navigation | `@dimen/_10sdp`
 app:cbn_dotSize | active dot size of the Curved Bottom Navigation | `@dimen/_3sdp`
+cbn_showDot | show active dot below the selected item on Curved Bottom Navigation | `true`
 
 ### Note
 The height of the `CurvedBottomNavigationView` is fixed to `56dp` and the size of the `FloatingActionButton` is also fixed to `56dp` for now.
