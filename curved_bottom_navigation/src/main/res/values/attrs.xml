@@ -13,5 +13,6 @@
         <attr name="cbn_dotColor" format="color" />
         <attr name="cbn_dotSize" format="dimension"/>
         <attr name="fontFamily" format="reference|string"/>
+        <attr name="cbn_showDot" format="boolean" />
     </declare-styleable>
 </resources>

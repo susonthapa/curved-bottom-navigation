@@ -100,6 +100,15 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
             }
         }
 
+    private var showDot = true
+        set(value){
+            field = value
+            if(isMenuInitialized){
+                invalidate()
+            }
+        }
+
+
 
     private var selectedColor = Color.parseColor("#000000")
         set(value) {
@@ -313,6 +322,9 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
                         R.styleable.CurvedBottomNavigationView_cbn_selectedColor,
                         selectedColor
                     )
+
+                    showDot = getBoolean(R.styleable.CurvedBottomNavigationView_cbn_showDot, true)
+
 
                     textColor = getColor(
                         R.styleable.CurvedBottomNavigationView_cbn_textColor,
@@ -873,10 +885,10 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         // Loop through each bottom navigation item
         for (i in bottomNavItemViews.indices) {
             val itemCenterX = menuCellWidth * i + (menuCellWidth / 2f)
-            val textY = layoutHeight - 8 // Position the text
+            val textY = layoutHeight - 2 // Position the text
 
             // If the item is selected, show a dot instead of text
-            if (i == selectedIndex) {
+            if (i == selectedIndex && showDot) {
                 canvas.drawCircle(itemCenterX, layoutHeight -12, dotRadius, dotPaint)
             } else {
                 // Draw text for non-selected items
