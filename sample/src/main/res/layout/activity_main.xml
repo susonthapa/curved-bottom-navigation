@@ -27,10 +27,10 @@
         android:layout_height="wrap_content"
         app:cbn_bg="@color/white"
         app:cbn_showDot="false"
-        app:cbn_dotSize="@dimen/_4sdp"
+        app:cbn_dotSize="5dp"
         app:cbn_textColor="@color/gray"
         app:cbn_dotColor ="@color/green"
-        app:cbn_textSize ="@dimen/_8sdp"
+        app:cbn_textSize ="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -71,7 +71,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
 
 
-    private var dotSize = context.resources.getDimension(com.intuit.sdp.R.dimen._5sdp)
+    private var dotSize = 5f.getScaledSize(context)
         set(value) {
             field = value
             dotRadius = dotSize
@@ -81,7 +81,7 @@ class CurvedBottomNavigationView @JvmOverloads constructor(
         }
 
 
-    private var fontTextSize =  context.resources.getDimension(com.intuit.sdp.R.dimen._10sdp)
+    private var fontTextSize =  10f.getScaledSize(context)
         set(value) {
             field = value
             textPaint.textSize = value
