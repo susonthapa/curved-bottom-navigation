@@ -13,5 +13,6 @@ data class CbnMenuItem(
     @DrawableRes
     val avdIcon: Int,
     @IdRes
-    val destinationId: Int = -1
+    val destinationId: Int = -1,
+    val title: String = ""
 )

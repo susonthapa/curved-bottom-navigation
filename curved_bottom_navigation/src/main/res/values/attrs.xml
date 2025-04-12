@@ -8,5 +8,11 @@
         <attr name="cbn_elevation" format="dimension"/>
         <attr name="cbn_fabBg" format="color" />
         <attr name="cbn_bg" format="color" />
+        <attr name="cbn_textSize" format="dimension" />
+        <attr name="cbn_textColor" format="color" />
+        <attr name="cbn_dotColor" format="color" />
+        <attr name="cbn_dotSize" format="dimension"/>
+        <attr name="fontFamily" format="reference|string"/>
+        <attr name="cbn_showDot" format="boolean" />
     </declare-styleable>
 </resources>

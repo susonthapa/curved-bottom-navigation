@@ -5,7 +5,7 @@
 A simple curved bottom navigation for Android with AnimatedVectorDrawable and Jetpack Navigation support.
 
 ## Demo
-![](/resources/cbn_demo.gif)
+<video src="https://github.com/user-attachments/assets/197f486b-1e0a-4dfc-b459-d5471579254b"></video>
 
 ## Setup
 Update your **module** level `build.gradle` file and add the following dependency. Please check the project releases for latest versions.
@@ -35,33 +35,38 @@ Add `CurvedBottomNavigationView` in your layout xml file.
 ### Setup in Code
 In your `onCreate()` of Activity create a list of `CbnMenuItem` that you want to appear in the `CurvedBottomNavigationView`. Then pass the list to the `setMenuItems()` function that also takes activeIndex(which is 0 by default) from which you can control which position item should be active when it is initialized.
 ```kotlin
-val menuItems = arrayOf(
-    CbnMenuItem(
-        R.drawable.ic_notification, // the icon
-        R.drawable.avd_notification, // the AVD that will be shown in FAB
-        R.id.navigation_notifications // optional if you use Jetpack Navigation
-    ),
-    CbnMenuItem(
-        R.drawable.ic_dashboard,
-        R.drawable.avd_dashboard,
-        R.id.navigation_dashboard
-    ),
-    CbnMenuItem(
-        R.drawable.ic_home,
-        R.drawable.avd_home,
-        R.id.navigation_home
-    ),
-    CbnMenuItem(
-        R.drawable.ic_profile,
-        R.drawable.avd_profile,
-        R.id.navigation_profile
-    ),
-    CbnMenuItem(
-        R.drawable.ic_settings,
-        R.drawable.avd_settings,
-        R.id.navigation_settings
-    )
-)        
+ val menuItems = arrayOf(
+            CbnMenuItem(
+                R.drawable.ic_notification,
+                R.drawable.avd_notification,
+                R.id.navigation_notifications, //optional
+                "Notifications" //optional
+            ),
+            CbnMenuItem(
+                R.drawable.ic_dashboard,
+                R.drawable.avd_dashboard,
+                R.id.navigation_dashboard,
+                "Dashboard"
+            ),
+            CbnMenuItem(
+                R.drawable.ic_home,
+                R.drawable.avd_home,
+                R.id.navigation_home,
+                "Home"
+            ),
+            CbnMenuItem(
+                R.drawable.ic_profile,
+                R.drawable.avd_profile,
+                R.id.navigation_profile,
+                "Profile"
+            ),
+            CbnMenuItem(
+                R.drawable.ic_settings,
+                R.drawable.avd_settings,
+                R.id.navigation_settings,
+                "Settings"
+            )
+        )
 binding.navView.setMenuItems(menuItems, 2)
 ```
 
@@ -100,6 +105,11 @@ app:cbn_fabElevation | Elevation for the Floating Action Button | `4dp`
 app:cbn_elevation | Elevaton for the Curved Bottom Navigation View | `6dp`
 app:cbn_fabBg | Background color of the Floating Action Button | `#FFFFFF`
 app:cbn_bg | Background color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_textColor | text color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_dotColor | active dot color of the Curved Bottom Navigation | `#FFFFFF`
+app:cbn_textSize | text size of the Curved Bottom Navigation | `@dimen/_10sdp`
+app:cbn_dotSize | active dot size of the Curved Bottom Navigation | `@dimen/_3sdp`
+cbn_showDot | show active dot below the selected item on Curved Bottom Navigation | `true`
 
 ### Note
 The height of the `CurvedBottomNavigationView` is fixed to `56dp` and the size of the `FloatingActionButton` is also fixed to `56dp` for now.

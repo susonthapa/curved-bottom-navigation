@@ -13,3 +13,10 @@ import androidx.core.content.ContextCompat
 fun Int.toPx(context: Context) = (this * context.resources.displayMetrics.densityDpi) / DisplayMetrics.DENSITY_DEFAULT
 
 fun Context.getColorRes(@ColorRes colorId: Int) = ContextCompat.getColor(this, colorId)
+
+fun Float.getScaledSize(context: Context): Float {
+    val metrics = context.resources.displayMetrics
+    val screenWidthDp = metrics.widthPixels / metrics.density
+    val scaleFactor = screenWidthDp / 360f
+    return this * scaleFactor
+}
