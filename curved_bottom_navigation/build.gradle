@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 ext {
     PUBLISH_GROUP_ID = 'np.com.susanthapa'
-    PUBLISH_VERSION = '0.6.5'
+    PUBLISH_VERSION = '0.7.0'
     PUBLISH_ARTIFACT_ID = 'curved_bottom_navigation'
 
 }
