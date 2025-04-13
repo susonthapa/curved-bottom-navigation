@@ -2,9 +2,8 @@
 ext["signing.keyId"] = ''
 ext["signing.password"] = ''
 ext["signing.secretKeyRingFile"] = ''
-ext["ossrhUsername"] = ''
-ext["ossrhPassword"] = ''
-ext["sonatypeStagingProfileId"] = ''
+ext["centralPortalUsername"] = ''
+ext["centralPortalPassword"] = ''
 
 File secretPropsFile = project.rootProject.file('local.properties')
 if (secretPropsFile.exists()) {
@@ -14,15 +13,14 @@ if (secretPropsFile.exists()) {
     p.each { name, value -> ext[name] = value }
 }
 
-// Set up Sonatype repository
+// Set up Central Portal repository
 nexusPublishing {
     repositories {
         sonatype {
-            stagingProfileId = sonatypeStagingProfileId
-            username = ossrhUsername
-            password = ossrhPassword
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            username = centralPortalUsername
+            password = centralPortalPassword
+            nexusUrl.set(uri("https://central.sonatype.com/api/v1/publisher/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/api/v1/publisher/"))
         }
     }
 }
