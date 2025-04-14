@@ -11,6 +11,15 @@ ext {
     PUBLISH_ARTIFACT_ID = 'curved_bottom_navigation'
 }
 
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    def Properties props = new Properties()
+    props.load(localPropsFile.newDataInputStream())
+    props.each { key, value ->
+        project.ext.set(key, value)
+    }
+}
+
 android {
     compileSdk 34
     namespace "np.com.susanthapa.curvedbottomnavigation"
