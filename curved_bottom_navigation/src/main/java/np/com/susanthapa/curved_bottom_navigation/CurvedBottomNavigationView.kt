@@ -22,6 +22,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.NavOptions
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import np.com.susanthapa.curvedbottomnavigation.R
 import kotlin.math.abs
 
 /**
